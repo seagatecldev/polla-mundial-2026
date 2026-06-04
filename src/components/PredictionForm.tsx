@@ -13,15 +13,19 @@ type Props = {
   match: Match;
   initialHome?: number | null;
   initialAway?: number | null;
+  initialWinner?: number | null;
   onClose: () => void;
 };
 
-export function PredictionForm({ match, initialHome, initialAway, onClose }: Props) {
+export function PredictionForm({ match, initialHome, initialAway, initialWinner, onClose }: Props) {
   const router = useRouter();
   const [home, setHome] = useState<string>(initialHome != null ? String(initialHome) : "");
   const [away, setAway] = useState<string>(initialAway != null ? String(initialAway) : "");
+  const [winnerId, setWinnerId] = useState<number | null>(initialWinner ?? null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const isKnockout = match.phase !== "group";
 
   // Bloquear scroll del fondo mientras la hoja está abierta.
   useEffect(() => {
@@ -39,8 +43,12 @@ export function PredictionForm({ match, initialHome, initialAway, onClose }: Pro
       setError("Ingresa un marcador válido para ambos equipos.");
       return;
     }
+    if (isKnockout && !winnerId) {
+      setError("Elige qué equipo crees que clasifica.");
+      return;
+    }
     setSaving(true);
-    const res = await upsertPrediction(match.id, h, a);
+    const res = await upsertPrediction(match.id, h, a, isKnockout ? winnerId : null);
     setSaving(false);
     if (!res.ok) {
       setError(res.error);
@@ -86,6 +94,40 @@ export function PredictionForm({ match, initialHome, initialAway, onClose }: Pro
             reverse
           />
         </div>
+
+        {isKnockout && (
+          <div className="mt-5">
+            <p className="mb-2 text-center text-sm font-semibold text-gray-600 dark:text-gray-300">
+              ¿Quién clasifica? <span className="text-xs font-normal text-gold">(+2 pts)</span>
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setWinnerId(match.home_team_id)}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 px-2 py-2.5 text-sm font-semibold transition ${
+                  winnerId === match.home_team_id
+                    ? "border-pitch bg-pitch text-white"
+                    : "border-gray-200 dark:border-gray-700"
+                }`}
+              >
+                <span className="text-lg">{match.home_team?.flag_emoji}</span>
+                <span className="line-clamp-1">{match.home_team?.name}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setWinnerId(match.away_team_id)}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 px-2 py-2.5 text-sm font-semibold transition ${
+                  winnerId === match.away_team_id
+                    ? "border-pitch bg-pitch text-white"
+                    : "border-gray-200 dark:border-gray-700"
+                }`}
+              >
+                <span className="text-lg">{match.away_team?.flag_emoji}</span>
+                <span className="line-clamp-1">{match.away_team?.name}</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {error && (
           <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-flame dark:bg-red-900/30">

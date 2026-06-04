@@ -108,6 +108,7 @@ export function MatchCard({ match, prediction, canPredict = true }: Props) {
           match={match}
           initialHome={prediction?.pred_home}
           initialAway={prediction?.pred_away}
+          initialWinner={prediction?.pred_winner_team_id}
           onClose={() => setOpen(false)}
         />
       )}

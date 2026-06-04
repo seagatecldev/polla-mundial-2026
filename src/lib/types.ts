@@ -52,6 +52,7 @@ export type Prediction = {
   match_id: number;
   pred_home: number;
   pred_away: number;
+  pred_winner_team_id: number | null;
   points_earned: number | null;
   created_at: string;
   updated_at: string;

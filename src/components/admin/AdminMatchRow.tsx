@@ -13,8 +13,16 @@ export function AdminMatchRow({ match }: { match: Match }) {
   const router = useRouter();
   const [home, setHome] = useState(match.home_score != null ? String(match.home_score) : "");
   const [away, setAway] = useState(match.away_score != null ? String(match.away_score) : "");
+  const [winnerId, setWinnerId] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const isKnockout = match.phase !== "group";
+  const h0 = parseInt(home, 10);
+  const a0 = parseInt(away, 10);
+  // En eliminatoria, si el marcador es empate, hay que elegir quién avanza (penales).
+  const needsWinner =
+    isKnockout && !Number.isNaN(h0) && !Number.isNaN(a0) && h0 === a0;
 
   async function finalize() {
     setMsg(null);
@@ -24,11 +32,20 @@ export function AdminMatchRow({ match }: { match: Match }) {
       setMsg({ ok: false, text: "Marcador inválido" });
       return;
     }
+    if (needsWinner && !winnerId) {
+      setMsg({ ok: false, text: "Empate: elige quién avanzó (penales)." });
+      return;
+    }
     setBusy(true);
     const res = await fetch("/api/admin/calcular-puntos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ matchId: match.id, homeScore: h, awayScore: a }),
+      body: JSON.stringify({
+        matchId: match.id,
+        homeScore: h,
+        awayScore: a,
+        winnerTeamId: needsWinner ? winnerId : undefined,
+      }),
     });
     const data = await res.json();
     setBusy(false);
@@ -95,6 +112,38 @@ export function AdminMatchRow({ match }: { match: Match }) {
           <Flag name={match.away_team?.name} emoji={match.away_team?.flag_emoji} size={20} />
         </span>
       </div>
+
+      {needsWinner && (
+        <div className="mt-3 rounded-lg bg-amber-50 p-2 dark:bg-amber-900/20">
+          <p className="mb-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
+            Empate — ¿quién avanzó (penales)?
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setWinnerId(match.home_team_id)}
+              className={`flex-1 rounded-md border px-2 py-1.5 text-xs font-medium ${
+                winnerId === match.home_team_id
+                  ? "border-pitch bg-pitch text-white"
+                  : "border-gray-300 dark:border-gray-700"
+              }`}
+            >
+              {match.home_team?.flag_emoji} {match.home_team?.name}
+            </button>
+            <button
+              type="button"
+              onClick={() => setWinnerId(match.away_team_id)}
+              className={`flex-1 rounded-md border px-2 py-1.5 text-xs font-medium ${
+                winnerId === match.away_team_id
+                  ? "border-pitch bg-pitch text-white"
+                  : "border-gray-300 dark:border-gray-700"
+              }`}
+            >
+              {match.away_team?.flag_emoji} {match.away_team?.name}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="mt-3 flex items-center gap-2">
         <Button size="sm" onClick={finalize} loading={busy} className="flex-1">
