@@ -5,10 +5,10 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Polla Mundial 2026",
+  title: "Seagate Mundial 2026",
   description:
-    "Predice los marcadores del Mundial FIFA 2026, gana puntos y compite en el ranking global.",
-  applicationName: "Polla Mundial 2026",
+    "La polla del Mundial FIFA 2026 de Seagate: predice los marcadores, gana puntos y compite en el ranking.",
+  applicationName: "Seagate Mundial 2026",
   manifest: undefined,
 };
 
