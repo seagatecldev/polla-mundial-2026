@@ -6,6 +6,7 @@ import { Check } from "lucide-react";
 import type { Match } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { Flag } from "@/components/ui/Flag";
 import { formatMatchDate } from "@/lib/utils";
 
 export function AdminMatchRow({ match }: { match: Match }) {
@@ -64,8 +65,9 @@ export function AdminMatchRow({ match }: { match: Match }) {
       </div>
 
       <div className="flex items-center justify-between gap-2">
-        <span className="flex-1 truncate text-sm font-semibold">
-          {match.home_team?.flag_emoji} {match.home_team?.name ?? "—"}
+        <span className="flex flex-1 items-center gap-1.5 truncate text-sm font-semibold">
+          <Flag name={match.home_team?.name} emoji={match.home_team?.flag_emoji} size={20} />
+          <span className="truncate">{match.home_team?.name ?? "—"}</span>
         </span>
         <div className="flex items-center gap-1.5">
           <input
@@ -88,8 +90,9 @@ export function AdminMatchRow({ match }: { match: Match }) {
             aria-label="Goles visitante"
           />
         </div>
-        <span className="flex-1 truncate text-right text-sm font-semibold">
-          {match.away_team?.name ?? "—"} {match.away_team?.flag_emoji}
+        <span className="flex flex-1 items-center justify-end gap-1.5 truncate text-right text-sm font-semibold">
+          <span className="truncate">{match.away_team?.name ?? "—"}</span>
+          <Flag name={match.away_team?.name} emoji={match.away_team?.flag_emoji} size={20} />
         </span>
       </div>
 

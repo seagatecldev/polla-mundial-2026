@@ -5,6 +5,7 @@ import { MapPin, Lock, Pencil } from "lucide-react";
 import type { Match, Prediction } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Flag } from "@/components/ui/Flag";
 import { PredictionForm } from "@/components/PredictionForm";
 import { formatMatchDate, hasStarted } from "@/lib/utils";
 
@@ -120,7 +121,7 @@ function TeamSide({
 }) {
   return (
     <div className={`flex flex-1 items-center gap-2 ${reverse ? "flex-row-reverse text-right" : ""}`}>
-      <span className="text-2xl">{flag ?? "🏳️"}</span>
+      <Flag name={name} emoji={flag} size={26} />
       <span className="line-clamp-2 text-sm font-semibold leading-tight">
         {name ?? "Por definir"}
       </span>

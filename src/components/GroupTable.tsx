@@ -1,5 +1,6 @@
 import type { Match, Team } from "@/lib/types";
 import { computeStandings } from "@/lib/standings";
+import { Flag } from "@/components/ui/Flag";
 import { cn } from "@/lib/utils";
 
 /**
@@ -46,7 +47,7 @@ export function GroupTable({
               <td className="px-3 py-2">
                 <div className="flex items-center gap-2">
                   <span className="w-4 text-center text-xs text-gray-400">{i + 1}</span>
-                  <span className="text-base">{r.team.flag_emoji}</span>
+                  <Flag name={r.team.name} emoji={r.team.flag_emoji} size={22} />
                   <span className="line-clamp-1 font-medium">{r.team.name}</span>
                 </div>
               </td>

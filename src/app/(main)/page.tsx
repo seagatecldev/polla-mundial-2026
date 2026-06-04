@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronRight, Trophy } from "lucide-react";
 import { MatchCard } from "@/components/MatchCard";
 import { Leaderboard } from "@/components/Leaderboard";
+import { Flag } from "@/components/ui/Flag";
 import {
   getCurrentUser,
   getLeaderboard,
@@ -72,7 +73,7 @@ export default async function HomePage() {
               <ul className="space-y-1">
                 {teams.map((t) => (
                   <li key={t.id} className="flex items-center gap-1.5 text-xs">
-                    <span>{t.flag_emoji}</span>
+                    <Flag name={t.name} emoji={t.flag_emoji} size={18} />
                     <span className="line-clamp-1 text-gray-600 dark:text-gray-300">{t.name}</span>
                   </li>
                 ))}

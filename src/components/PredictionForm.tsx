@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import type { Match } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
+import { Flag } from "@/components/ui/Flag";
 import { formatMatchDate } from "@/lib/utils";
 import { upsertPrediction } from "@/app/actions/predictions";
 import { useRouter } from "next/navigation";
@@ -116,7 +117,7 @@ function ScoreSide({
   return (
     <div className="flex flex-1 flex-col items-center gap-2">
       <div className="flex flex-col items-center gap-1">
-        <span className="text-3xl">{flag}</span>
+        <Flag name={label} emoji={flag} size={36} />
         <span className="line-clamp-1 text-center text-xs font-medium text-gray-600 dark:text-gray-300">
           {label}
         </span>
