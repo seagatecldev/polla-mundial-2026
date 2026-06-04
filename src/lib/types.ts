@@ -1,4 +1,4 @@
-// Tipos del dominio — Polla Mundial 2026
+// Tipos del dominio — Seagate Mundial 2026
 
 export type Phase =
   | "group"

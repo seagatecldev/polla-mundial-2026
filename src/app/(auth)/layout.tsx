@@ -5,7 +5,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="text-5xl">🏆</div>
         <h1 className="mt-3 text-2xl font-extrabold tracking-tight">Seagate Mundial 2026</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          La polla del Mundial · Seagate. Predice, acierta y gana la gloria.
+          El Mundial de Seagate. Predice, acierta y gana la gloria.
         </p>
       </div>
       {children}

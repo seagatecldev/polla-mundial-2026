@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 export const metadata: Metadata = {
   title: "Seagate Mundial 2026",
   description:
-    "La polla del Mundial FIFA 2026 de Seagate: predice los marcadores, gana puntos y compite en el ranking.",
+    "El torneo de predicciones del Mundial FIFA 2026 de Seagate: predice los marcadores, gana puntos y compite en el ranking.",
   applicationName: "Seagate Mundial 2026",
   manifest: undefined,
 };
