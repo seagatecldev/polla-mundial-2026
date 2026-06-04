@@ -1,17 +1,34 @@
 import { AdminMatchRow } from "@/components/admin/AdminMatchRow";
-import { getMatches } from "@/lib/data";
+import { GenerateBracketPanel } from "@/components/admin/GenerateBracketPanel";
+import { getMatches, getTeams } from "@/lib/data";
+import { computeQualification } from "@/lib/qualification";
+import { GROUPS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  // Partidos pendientes (upcoming/live) primero; los finalizados al final por si hay que corregir.
-  const [upcoming, live, finished] = await Promise.all([
+  const [teams, groupMatches, upcoming, live, finished, r32] = await Promise.all([
+    getTeams(),
+    getMatches({ phase: "group" }),
     getMatches({ status: "upcoming" }),
     getMatches({ status: "live" }),
     getMatches({ status: "finished" }),
+    getMatches({ phase: "round_of_32" }),
   ]);
 
-  const pending = [...live, ...upcoming];
+  // Solo se pueden cargar resultados de partidos con ambos equipos definidos.
+  const hasTeams = (m: { home_team_id: number | null; away_team_id: number | null }) =>
+    m.home_team_id != null && m.away_team_id != null;
+
+  const pending = [...live, ...upcoming].filter(hasTeams);
+  const finishedWithTeams = finished.filter(hasTeams);
+
+  // Datos de clasificación para el panel de generación del cuadro.
+  const q = computeQualification(teams, groupMatches);
+  const alreadyGenerated = r32.some((m) => m.home_team_id != null);
+  const winners = GROUPS.map((g) => ({ group: g, team: q.winners[g] ?? null }));
+  const runners = GROUPS.map((g) => ({ group: g, team: q.runners[g] ?? null }));
+  const thirds = q.thirds.map((t) => ({ group: t.group, team: t.team, qualified: t.qualified }));
 
   return (
     <div className="space-y-6">
@@ -19,6 +36,15 @@ export default async function AdminPage() {
         Ingresa el marcador final de cada partido. Al guardar se recalculan automáticamente
         los puntos de todas las predicciones y el ranking.
       </p>
+
+      <GenerateBracketPanel
+        complete={q.complete}
+        alreadyGenerated={alreadyGenerated}
+        winners={winners}
+        runners={runners}
+        thirds={thirds}
+        warnings={q.warnings}
+      />
 
       <section>
         <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">
@@ -31,17 +57,17 @@ export default async function AdminPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-400">No hay partidos pendientes.</p>
+          <p className="text-sm text-gray-400">No hay partidos pendientes con equipos definidos.</p>
         )}
       </section>
 
-      {finished.length > 0 && (
+      {finishedWithTeams.length > 0 && (
         <section>
           <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">
-            Finalizados ({finished.length}) — editar si hace falta
+            Finalizados ({finishedWithTeams.length}) — editar si hace falta
           </h2>
           <div className="space-y-3">
-            {finished.map((m) => (
+            {finishedWithTeams.map((m) => (
               <AdminMatchRow key={m.id} match={m} />
             ))}
           </div>

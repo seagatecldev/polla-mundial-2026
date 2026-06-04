@@ -21,7 +21,8 @@ export function MatchCard({ match, prediction, canPredict = true }: Props) {
 
   const started = hasStarted(match.match_date) || match.status !== "upcoming";
   const finished = match.status === "finished" && match.home_score != null;
-  const editable = canPredict && !started;
+  const teamsSet = match.home_team_id != null && match.away_team_id != null;
+  const editable = canPredict && !started && teamsSet;
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -91,6 +92,10 @@ export function MatchCard({ match, prediction, canPredict = true }: Props) {
           <Button size="sm" fullWidth onClick={() => setOpen(true)}>
             Predecir
           </Button>
+        ) : !teamsSet ? (
+          <p className="text-sm text-gray-400">
+            Equipos por definir — podrás predecir cuando se conozcan.
+          </p>
         ) : (
           <p className="text-sm text-gray-400">
             {started ? "No predijiste este partido." : "Aún sin predicción."}
