@@ -43,11 +43,21 @@ export function hasStarted(matchDateIso: string): boolean {
   return new Date(matchDateIso).getTime() <= Date.now();
 }
 
-/** Color de fondo determinista para un avatar a partir de un id. */
+/**
+ * Color de fondo determinista (hex) para un avatar a partir de un id.
+ * Devuelve un hex para aplicarlo con `style`, evitando que Tailwind
+ * purgue clases generadas dinámicamente.
+ */
 export function avatarColor(seed: string): string {
   const palette = [
-    "bg-pitch", "bg-flame", "bg-blue-600", "bg-purple-600",
-    "bg-orange-500", "bg-teal-600", "bg-pink-600", "bg-indigo-600",
+    "#00563F", // pitch
+    "#C8102E", // flame
+    "#2563EB", // blue-600
+    "#7C3AED", // purple-600
+    "#EA580C", // orange-600
+    "#0D9488", // teal-600
+    "#DB2777", // pink-600
+    "#4F46E5", // indigo-600
   ];
   let hash = 0;
   for (let i = 0; i < seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash);

@@ -19,9 +19,9 @@ export function Avatar({
     <span
       className={cn(
         "flex shrink-0 items-center justify-center rounded-full font-bold text-white",
-        avatarColor(seed || name),
         dims
       )}
+      style={{ backgroundColor: avatarColor(seed || name) }}
       aria-hidden
     >
       {initials(name)}
