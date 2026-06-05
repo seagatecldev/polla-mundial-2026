@@ -1,9 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getMatches, getTeams } from "@/lib/data";
+import { CACHE_TAGS, getMatches, getTeams } from "@/lib/data";
 import { computeQualification } from "@/lib/qualification";
 import { parseEligibleGroups } from "@/lib/bracket";
 
@@ -102,6 +102,9 @@ export async function generateKnockout(
     if (e2) return { ok: false, error: `Error al guardar ${m.bracket_code}.` };
   }
 
+  // El cuadro se rellenó/reinició y se recalcularon perfiles: invalidar caché.
+  revalidateTag(CACHE_TAGS.matches);
+  revalidateTag(CACHE_TAGS.leaderboard);
   revalidatePath("/admin");
   revalidatePath("/partidos");
   revalidatePath("/");

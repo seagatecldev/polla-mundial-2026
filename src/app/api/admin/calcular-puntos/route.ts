@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { CACHE_TAGS } from "@/lib/data";
 
 /**
  * Finaliza un partido y recalcula puntos de TODAS sus predicciones de forma
@@ -54,6 +56,9 @@ export async function POST(req: NextRequest) {
       p_away_score: a,
     });
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    // Resultado nuevo → invalidar partidos y ranking al instante.
+    revalidateTag(CACHE_TAGS.matches);
+    revalidateTag(CACHE_TAGS.leaderboard);
     return NextResponse.json({ ok: true, updated: data ?? 0 });
   }
 
@@ -78,6 +83,9 @@ export async function POST(req: NextRequest) {
     p_winner_team_id: winner,
   });
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+  // Resultado de eliminatoria → avanza el cuadro y cambia puntos: invalidar ambos.
+  revalidateTag(CACHE_TAGS.matches);
+  revalidateTag(CACHE_TAGS.leaderboard);
   return NextResponse.json({ ok: true, updated: data ?? 0 });
 }
 
@@ -111,5 +119,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 
+  // Cambio de estado del partido → invalidar la caché de partidos.
+  revalidateTag(CACHE_TAGS.matches);
   return NextResponse.json({ ok: true });
 }

@@ -1,5 +1,24 @@
+import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Match, Prediction, Profile, Team } from "@/lib/types";
+
+/**
+ * Etiquetas de caché para los datos PÚBLICOS y COMPARTIDOS (iguales para todos
+ * los usuarios). Permiten invalidación instantánea cuando el admin escribe.
+ *  - "matches": partidos (resultados, cuadro)
+ *  - "leaderboard": ranking / puntos de perfiles
+ *  - "teams": equipos (casi estático)
+ */
+export const CACHE_TAGS = {
+  matches: "matches",
+  leaderboard: "leaderboard",
+  teams: "teams",
+} as const;
+
+// TTL corto: protege contra ráfagas (100 simultáneos) sin notarse en la práctica.
+// Aun así, las escrituras del admin invalidan por etiqueta al instante.
+const SHARED_TTL = 30;
 
 // Selección de partido con sus equipos embebidos.
 const MATCH_SELECT = `
@@ -29,39 +48,51 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data;
 }
 
-export async function getTeams(): Promise<Team[]> {
-  const supabase = await createClient();
-  const { data } = await supabase.from("teams").select("*").order("id");
-  return data ?? [];
-}
+// Datos públicos (equipos): casi estáticos. Cacheados largo, invalidan por "teams".
+export const getTeams = unstable_cache(
+  async (): Promise<Team[]> => {
+    const supabase = createAdminClient();
+    const { data } = await supabase.from("teams").select("*").order("id");
+    return data ?? [];
+  },
+  ["teams"],
+  { revalidate: 3600, tags: [CACHE_TAGS.teams] }
+);
 
-export async function getMatches(opts?: {
-  phase?: string;
-  group?: string;
-  status?: string;
-  limit?: number;
-}): Promise<Match[]> {
-  const supabase = await createClient();
-  let q = supabase.from("matches").select(MATCH_SELECT).order("match_date");
-  if (opts?.phase) q = q.eq("phase", opts.phase);
-  if (opts?.group) q = q.eq("group_name", opts.group);
-  if (opts?.status) q = q.eq("status", opts.status);
-  if (opts?.limit) q = q.limit(opts.limit);
-  const { data } = await q;
-  return (data ?? []).map(normalizeMatch);
-}
+type MatchOpts = { phase?: string; group?: string; status?: string; limit?: number };
 
-export async function getUpcomingMatches(limit = 3): Promise<Match[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("matches")
-    .select(MATCH_SELECT)
-    .eq("status", "upcoming")
-    .gt("match_date", new Date().toISOString())
-    .order("match_date")
-    .limit(limit);
-  return (data ?? []).map(normalizeMatch);
-}
+// Datos públicos (partidos): compartidos por todos. Cacheados con TTL corto +
+// invalidación por etiqueta "matches" al cargar resultados.
+export const getMatches = unstable_cache(
+  async (opts?: MatchOpts): Promise<Match[]> => {
+    const supabase = createAdminClient();
+    let q = supabase.from("matches").select(MATCH_SELECT).order("match_date");
+    if (opts?.phase) q = q.eq("phase", opts.phase);
+    if (opts?.group) q = q.eq("group_name", opts.group);
+    if (opts?.status) q = q.eq("status", opts.status);
+    if (opts?.limit) q = q.limit(opts.limit);
+    const { data } = await q;
+    return (data ?? []).map(normalizeMatch);
+  },
+  ["matches"],
+  { revalidate: SHARED_TTL, tags: [CACHE_TAGS.matches] }
+);
+
+export const getUpcomingMatches = unstable_cache(
+  async (limit = 3): Promise<Match[]> => {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from("matches")
+      .select(MATCH_SELECT)
+      .eq("status", "upcoming")
+      .gt("match_date", new Date().toISOString())
+      .order("match_date")
+      .limit(limit);
+    return (data ?? []).map(normalizeMatch);
+  },
+  ["upcoming-matches"],
+  { revalidate: SHARED_TTL, tags: [CACHE_TAGS.matches] }
+);
 
 /** Predicciones del usuario indexadas por match_id, para pintar rápido. */
 export async function getUserPredictionsMap(
@@ -88,15 +119,21 @@ export async function getUserPredictionsWithMatch(userId: string): Promise<Predi
   }));
 }
 
-export async function getLeaderboard(limit?: number): Promise<Profile[]> {
-  const supabase = await createClient();
-  let q = supabase
-    .from("profiles")
-    .select("*")
-    .order("total_points", { ascending: false })
-    .order("exact_scores", { ascending: false })
-    .order("created_at", { ascending: true });
-  if (limit) q = q.limit(limit);
-  const { data } = await q;
-  return data ?? [];
-}
+// Ranking: compartido por todos. Cacheado con TTL corto + invalidación por
+// etiqueta "leaderboard" cuando cambian los puntos (resultados del admin).
+export const getLeaderboard = unstable_cache(
+  async (limit?: number): Promise<Profile[]> => {
+    const supabase = createAdminClient();
+    let q = supabase
+      .from("profiles")
+      .select("*")
+      .order("total_points", { ascending: false })
+      .order("exact_scores", { ascending: false })
+      .order("created_at", { ascending: true });
+    if (limit) q = q.limit(limit);
+    const { data } = await q;
+    return data ?? [];
+  },
+  ["leaderboard"],
+  { revalidate: SHARED_TTL, tags: [CACHE_TAGS.leaderboard] }
+);
