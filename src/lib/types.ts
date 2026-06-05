@@ -44,6 +44,9 @@ export type Match = {
   home_score: number | null;
   away_score: number | null;
   status: MatchStatus;
+  bracket_code?: string | null;
+  home_source?: string | null;
+  away_source?: string | null;
 };
 
 export type Prediction = {

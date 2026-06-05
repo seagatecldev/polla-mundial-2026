@@ -1,5 +1,6 @@
 import { AdminMatchRow } from "@/components/admin/AdminMatchRow";
 import { GenerateBracketPanel } from "@/components/admin/GenerateBracketPanel";
+import { parseEligibleGroups } from "@/lib/bracket";
 import { getMatches, getTeams } from "@/lib/data";
 import { computeQualification } from "@/lib/qualification";
 import { GROUPS } from "@/lib/types";
@@ -30,6 +31,16 @@ export default async function AdminPage() {
   const runners = GROUPS.map((g) => ({ group: g, team: q.runners[g] ?? null }));
   const thirds = q.thirds.map((t) => ({ group: t.group, team: t.team, qualified: t.qualified }));
 
+  // Llaves de tercero (R32 con visitante "3[...]"), con su rival y grupos elegibles.
+  const slots = r32
+    .map((m) => ({
+      code: m.bracket_code ?? "",
+      rival: m.home_source ?? "",
+      eligible: parseEligibleGroups(m.away_source) ?? [],
+    }))
+    .filter((s) => s.eligible.length > 0)
+    .sort((a, b) => Number(a.code) - Number(b.code));
+
   return (
     <div className="space-y-6">
       <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -43,6 +54,7 @@ export default async function AdminPage() {
         winners={winners}
         runners={runners}
         thirds={thirds}
+        slots={slots}
         warnings={q.warnings}
       />
 

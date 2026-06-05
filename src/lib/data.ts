@@ -4,7 +4,7 @@ import type { Match, Prediction, Profile, Team } from "@/lib/types";
 // Selección de partido con sus equipos embebidos.
 const MATCH_SELECT = `
   id, home_team_id, away_team_id, match_date, venue, city, phase, group_name,
-  home_score, away_score, status,
+  home_score, away_score, status, bracket_code, home_source, away_source,
   home_team:teams!matches_home_team_id_fkey ( id, name, flag_emoji, group_name, confederation ),
   away_team:teams!matches_away_team_id_fkey ( id, name, flag_emoji, group_name, confederation )
 `;
