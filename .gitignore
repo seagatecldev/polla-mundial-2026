@@ -29,3 +29,8 @@ next-env.d.ts
 
 # vercel
 .vercel
+
+# datos personales (no subir al repo)
+docs/*.xlsx
+docs/*.xls
+docs/*.csv
