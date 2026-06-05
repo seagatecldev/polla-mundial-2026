@@ -21,7 +21,7 @@ export function BrandLogos({ size = "md" }: { size?: "sm" | "md" }) {
       <SafeLogo
         src="/escudo-ecuador.png"
         alt="Selección de Ecuador"
-        className={`${h} w-auto object-contain drop-shadow-sm`}
+        className={`${h} w-auto rounded-xl object-contain shadow-sm`}
       />
       <span className="h-10 w-px bg-gray-300/60 dark:bg-gray-600/60" aria-hidden />
       <SafeLogo
