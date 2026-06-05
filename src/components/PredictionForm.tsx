@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { Match } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
@@ -26,6 +27,10 @@ export function PredictionForm({ match, initialHome, initialAway, initialWinner,
   const [saving, setSaving] = useState(false);
 
   const isKnockout = match.phase !== "group";
+
+  // El modal se monta vía portal en <body>; `mounted` evita usar document en SSR.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   // Bloquear scroll del fondo mientras la hoja está abierta.
   useEffect(() => {
@@ -58,7 +63,9 @@ export function PredictionForm({ match, initialHome, initialAway, initialWinner,
     onClose();
   }
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center lg:items-center" role="dialog" aria-modal="true">
       <button
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -139,7 +146,8 @@ export function PredictionForm({ match, initialHome, initialAway, initialWinner,
           Guardar predicción
         </Button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
