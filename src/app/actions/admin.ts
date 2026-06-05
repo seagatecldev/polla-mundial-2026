@@ -61,6 +61,12 @@ export async function generateKnockout(
   for (const g of Object.keys(q.runners)) sourceToTeam[`2${g}`] = q.runners[g]?.id ?? null;
 
   const supabase = createAdminClient();
+
+  // Reinicio limpio de TODO el cuadro (borra resultados/predicciones de KO y
+  // recalcula el ranking) para evitar estados inconsistentes al regenerar.
+  const { error: eReset } = await supabase.rpc("reset_knockout");
+  if (eReset) return { ok: false, error: "No se pudo reiniciar el cuadro." };
+
   const { data: r32, error: e1 } = await supabase
     .from("matches")
     .select("id, bracket_code, home_source, away_source")

@@ -65,6 +65,12 @@ export function GenerateBracketPanel({
       setMsg({ ok: false, text: "Asigna los 8 terceros sin repetir." });
       return;
     }
+    if (alreadyGenerated) {
+      const ok = window.confirm(
+        "Regenerar reinicia TODO el cuadro: borra los resultados y predicciones de eliminatoria ya cargados y recalcula el ranking. ¿Continuar?"
+      );
+      if (!ok) return;
+    }
     setBusy(true);
     const payload = THIRD_SLOTS.map((s) => ({ bracketCode: s.code, teamId: assignment[s.code] }));
     const res = await generateKnockout(payload);
@@ -97,7 +103,8 @@ export function GenerateBracketPanel({
           {alreadyGenerated && (
             <p className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-700 dark:bg-blue-900/30">
               <CheckCircle2 size={14} />
-              El cuadro ya fue generado. Volver a generar reescribe los Dieciseisavos.
+              El cuadro ya fue generado. Regenerar reinicia TODO el cuadro (borra resultados y
+              predicciones de eliminatoria).
             </p>
           )}
 
