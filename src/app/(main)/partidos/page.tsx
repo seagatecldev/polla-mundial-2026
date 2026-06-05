@@ -37,7 +37,7 @@ export default async function PartidosPage({
       <h1 className="text-xl font-extrabold">Partidos</h1>
 
       {/* Tabs de fase */}
-      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">
+      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
         {PHASE_TABS.map((t) => (
           <Tab key={t.key} href={`/partidos?phase=${t.key}`} active={t.key === phase}>
             {t.label}
@@ -47,7 +47,7 @@ export default async function PartidosPage({
 
       {/* Sub-tabs de grupo */}
       {phase === "group" && (
-        <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4">
+        <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
           <Tab href="/partidos?phase=group" active={!group} small>
             Todos
           </Tab>
@@ -61,7 +61,7 @@ export default async function PartidosPage({
 
       {/* Lista */}
       {matches.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3">
           {matches.map((m) => (
             <MatchCard key={m.id} match={m} prediction={predMap[m.id] ?? null} />
           ))}

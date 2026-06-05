@@ -29,7 +29,8 @@ const config: Config = {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
       maxWidth: {
-        app: "30rem", // ~480px, mobile-first
+        app: "30rem", // ~480px, mobile-first (modales y barras)
+        content: "72rem", // ~1152px, área de contenido en escritorio
       },
     },
   },

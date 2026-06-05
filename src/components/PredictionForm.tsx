@@ -59,13 +59,13 @@ export function PredictionForm({ match, initialHome, initialAway, initialWinner,
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 flex items-end justify-center lg:items-center" role="dialog" aria-modal="true">
       <button
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
         aria-label="Cerrar"
       />
-      <div className="relative mx-auto w-full max-w-app rounded-t-2xl bg-white p-5 pb-8 shadow-xl dark:bg-gray-900">
+      <div className="relative mx-auto w-full max-w-app rounded-t-2xl bg-white p-5 pb-8 shadow-xl dark:bg-gray-900 lg:max-w-md lg:rounded-2xl lg:pb-6">
         <div className="mb-4 flex items-start justify-between">
           <div>
             <h2 className="text-lg font-bold">Tu predicción</h2>

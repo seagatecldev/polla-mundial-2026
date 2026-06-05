@@ -48,43 +48,53 @@ export default async function AdminPage() {
         los puntos de todas las predicciones y el ranking.
       </p>
 
-      <GenerateBracketPanel
-        complete={q.complete}
-        alreadyGenerated={alreadyGenerated}
-        winners={winners}
-        runners={runners}
-        thirds={thirds}
-        slots={slots}
-        warnings={q.warnings}
-      />
+      <div className="lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
+        {/* Generación del cuadro (columna lateral fija en escritorio) */}
+        <div className="lg:sticky lg:top-24">
+          <GenerateBracketPanel
+            complete={q.complete}
+            alreadyGenerated={alreadyGenerated}
+            winners={winners}
+            runners={runners}
+            thirds={thirds}
+            slots={slots}
+            warnings={q.warnings}
+          />
+        </div>
 
-      <section>
-        <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">
-          Por jugar / en vivo ({pending.length})
-        </h2>
-        {pending.length > 0 ? (
-          <div className="space-y-3">
-            {pending.map((m) => (
-              <AdminMatchRow key={m.id} match={m} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-400">No hay partidos pendientes con equipos definidos.</p>
-        )}
-      </section>
+        {/* Partidos */}
+        <div className="mt-6 space-y-6 lg:col-span-2 lg:mt-0">
+          <section>
+            <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">
+              Por jugar / en vivo ({pending.length})
+            </h2>
+            {pending.length > 0 ? (
+              <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
+                {pending.map((m) => (
+                  <AdminMatchRow key={m.id} match={m} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">
+                No hay partidos pendientes con equipos definidos.
+              </p>
+            )}
+          </section>
 
-      {finishedWithTeams.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">
-            Finalizados ({finishedWithTeams.length}) — editar si hace falta
-          </h2>
-          <div className="space-y-3">
-            {finishedWithTeams.map((m) => (
-              <AdminMatchRow key={m.id} match={m} />
-            ))}
-          </div>
-        </section>
-      )}
+          {finishedWithTeams.length > 0 && (
+            <section>
+              <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">
+                Finalizados ({finishedWithTeams.length}) — editar si hace falta
+              </h2>
+              <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
+                {finishedWithTeams.map((m) => (
+                  <AdminMatchRow key={m.id} match={m} />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

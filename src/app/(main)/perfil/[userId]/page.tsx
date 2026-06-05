@@ -25,7 +25,7 @@ export default async function PerfilPage({
       : 0;
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto space-y-5 lg:max-w-4xl">
       {/* Cabecera de perfil */}
       <div className="flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-6 text-center dark:border-gray-800 dark:bg-gray-900">
         <Avatar name={profile.display_name} seed={profile.id} size="lg" />
@@ -54,7 +54,7 @@ export default async function PerfilPage({
           Predicciones jugadas
         </h2>
         {finished.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
             {finished.map((p) =>
               p.match ? (
                 <MatchCard key={p.id} match={p.match} prediction={p} canPredict={false} />

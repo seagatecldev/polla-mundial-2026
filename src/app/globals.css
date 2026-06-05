@@ -14,9 +14,15 @@ body {
   @apply bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100;
 }
 
-/* Contenedor mobile-first centrado */
+/* Contenedor mobile-first centrado. En escritorio se libera el ancho para
+   permitir el layout con barra lateral. */
 .app-shell {
-  @apply mx-auto w-full max-w-app min-h-dvh flex flex-col;
+  @apply mx-auto w-full max-w-app min-h-dvh flex flex-col lg:max-w-none;
+}
+
+/* Envoltura del contenido de cada página: angosta en móvil, amplia en escritorio. */
+.content-wrap {
+  @apply mx-auto w-full max-w-app lg:max-w-content;
 }
 
 /* Oculta la barra de scroll horizontal en tabs */

@@ -2,24 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CalendarDays, ClipboardList, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const tabs = [
-  { href: "/", label: "Inicio", icon: Home },
-  { href: "/partidos", label: "Partidos", icon: CalendarDays },
-  { href: "/mis-predicciones", label: "Mis picks", icon: ClipboardList },
-  { href: "/ranking", label: "Ranking", icon: Trophy },
-];
+import { NAV_ITEMS, isNavActive } from "@/lib/nav";
 
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="sticky bottom-0 z-30 mx-auto w-full max-w-app border-t border-gray-200 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-gray-950/90">
+    <nav className="sticky bottom-0 z-30 mx-auto w-full max-w-app border-t border-gray-200 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-gray-950/90 lg:hidden">
       <ul className="grid grid-cols-4">
-        {tabs.map(({ href, label, icon: Icon }) => {
-          const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+          const active = isNavActive(href, pathname);
           return (
             <li key={href}>
               <Link

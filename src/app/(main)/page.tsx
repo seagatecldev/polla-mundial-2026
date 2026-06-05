@@ -29,35 +29,37 @@ export default async function HomePage() {
   }));
 
   return (
-    <div className="space-y-7">
-      {/* Próximos partidos */}
-      <section>
-        <SectionHeader title="Próximos partidos" href="/partidos" />
-        {upcoming.length > 0 ? (
-          <div className="space-y-3">
-            {upcoming.map((m) => (
-              <MatchCard key={m.id} match={m} prediction={predMap[m.id] ?? null} />
-            ))}
-          </div>
-        ) : (
-          <p className="rounded-2xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-400 dark:border-gray-700">
-            No hay partidos próximos por ahora.
-          </p>
-        )}
-      </section>
+    <div className="space-y-7 lg:space-y-9">
+      <div className="lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
+        {/* Próximos partidos */}
+        <section className="lg:col-span-2">
+          <SectionHeader title="Próximos partidos" href="/partidos" />
+          {upcoming.length > 0 ? (
+            <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 lg:grid-cols-1 xl:grid-cols-2">
+              {upcoming.map((m) => (
+                <MatchCard key={m.id} match={m} prediction={predMap[m.id] ?? null} />
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-2xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-400 dark:border-gray-700">
+              No hay partidos próximos por ahora.
+            </p>
+          )}
+        </section>
 
-      {/* Mini ranking */}
-      <section>
-        <SectionHeader title="Top 5 del ranking" href="/ranking" icon />
-        <Leaderboard profiles={topProfiles} currentUserId={user?.id} compact />
-      </section>
+        {/* Mini ranking */}
+        <section className="mt-7 lg:mt-0">
+          <SectionHeader title="Top 5 del ranking" href="/ranking" icon />
+          <Leaderboard profiles={topProfiles} currentUserId={user?.id} compact />
+        </section>
+      </div>
 
       {/* Grupos */}
       <section>
         <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">
           Grupos
         </h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {teamsByGroup.map(({ group, teams }) => (
             <Link
               key={group}

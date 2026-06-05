@@ -16,7 +16,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <Shield size={18} />
         <h1 className="text-base font-bold">Panel de administración</h1>
       </header>
-      <main className="flex-1 px-4 py-4">{children}</main>
+      <main className="flex-1 px-4 py-4 lg:px-8 lg:py-8">
+        <div className="mx-auto w-full max-w-app lg:max-w-content">{children}</div>
+      </main>
     </div>
   );
 }

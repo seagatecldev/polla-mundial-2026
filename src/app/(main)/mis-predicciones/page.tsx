@@ -65,7 +65,7 @@ export default async function MisPrediccionesPage({
       </div>
 
       {/* Filtros */}
-      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">
+      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
         {FILTERS.map((f) => (
           <Link
             key={f.key}
@@ -84,7 +84,7 @@ export default async function MisPrediccionesPage({
 
       {/* Lista */}
       {visible.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3">
           {visible.map((p) =>
             p.match ? (
               <MatchCard key={p.id} match={p.match} prediction={p} />
