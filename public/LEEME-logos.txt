@@ -1,0 +1,10 @@
+Coloca aquí los dos logos con estos nombres EXACTOS (en minúsculas):
+
+  1. escudo-ecuador.png   -> el escudo de la FEF (Selección de Ecuador)
+  2. seagate.png          -> el logo de Seagate
+
+Recomendado: PNG con fondo transparente, alto >= 200px.
+
+Se usan en el login y en la barra lateral de escritorio.
+Mientras no estén, el diseño funciona igual: aparecerán automáticamente
+en cuanto subas los archivos con estos nombres.

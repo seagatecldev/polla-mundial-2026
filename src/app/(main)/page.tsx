@@ -29,7 +29,7 @@ export default async function HomePage() {
   }));
 
   return (
-    <div className="space-y-7 lg:space-y-9">
+    <div className="animate-fade-in-up space-y-7 lg:space-y-9">
       <div className="lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
         {/* Próximos partidos */}
         <section className="lg:col-span-2">

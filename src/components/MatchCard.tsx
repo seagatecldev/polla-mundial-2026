@@ -25,7 +25,7 @@ export function MatchCard({ match, prediction, canPredict = true }: Props) {
   const editable = canPredict && !started && teamsSet;
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <div className="card-hover rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
       {/* Cabecera: fecha + estado */}
       <div className="mb-3 flex items-center justify-between">
         <span className="text-xs font-medium text-gray-500 dark:text-gray-400">

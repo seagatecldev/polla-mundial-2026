@@ -33,7 +33,7 @@ export default async function PartidosPage({
   ]);
 
   return (
-    <div className="space-y-4">
+    <div className="animate-fade-in-up space-y-4">
       <h1 className="text-xl font-extrabold">Partidos</h1>
 
       {/* Tabs de fase */}

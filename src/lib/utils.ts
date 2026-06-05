@@ -50,7 +50,7 @@ export function hasStarted(matchDateIso: string): boolean {
  */
 export function avatarColor(seed: string): string {
   const palette = [
-    "#00563F", // pitch
+    "#152C5B", // pitch (azul marino)
     "#C8102E", // flame
     "#2563EB", // blue-600
     "#7C3AED", // purple-600

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { NAV_ITEMS, isNavActive } from "@/lib/nav";
 import { Avatar } from "@/components/ui/Avatar";
 import { SignOutButton } from "@/components/SignOutButton";
+import { BrandLogos } from "@/components/BrandLogos";
 
 type Props = {
   userId: string;
@@ -25,11 +26,9 @@ export function SideNav({ userId, name, points, isAdmin }: Props) {
   return (
     <aside className="hidden lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-64 lg:shrink-0 lg:flex-col lg:border-r lg:border-gray-200 lg:bg-white lg:dark:border-gray-800 lg:dark:bg-gray-950">
       {/* Marca */}
-      <div className="flex items-center gap-2 px-5 py-5">
-        <span className="text-2xl">🏆</span>
-        <span className="text-base font-extrabold leading-tight text-pitch dark:text-pitch-light">
-          Seagate
-          <br />
+      <div className="flex flex-col gap-2 px-5 py-5">
+        <BrandLogos size="sm" />
+        <span className="text-sm font-extrabold leading-tight text-pitch dark:text-pitch-light">
           Mundial 2026
         </span>
       </div>

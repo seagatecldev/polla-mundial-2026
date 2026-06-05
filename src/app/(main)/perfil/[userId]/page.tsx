@@ -25,7 +25,7 @@ export default async function PerfilPage({
       : 0;
 
   return (
-    <div className="mx-auto space-y-5 lg:max-w-4xl">
+    <div className="mx-auto animate-fade-in-up space-y-5 lg:max-w-4xl">
       {/* Cabecera de perfil */}
       <div className="flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-6 text-center dark:border-gray-800 dark:bg-gray-900">
         <Avatar name={profile.display_name} seed={profile.id} size="lg" />

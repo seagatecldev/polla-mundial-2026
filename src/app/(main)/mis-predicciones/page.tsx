@@ -53,7 +53,7 @@ export default async function MisPrediccionesPage({
   const visible = predictions.filter((p) => matchesFilter(p, filter));
 
   return (
-    <div className="space-y-4">
+    <div className="animate-fade-in-up space-y-4">
       <h1 className="text-xl font-extrabold">Mis predicciones</h1>
 
       {/* Resumen */}
