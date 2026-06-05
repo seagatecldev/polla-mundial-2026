@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Flag } from "@/components/ui/Flag";
 import { generateKnockout } from "@/app/actions/admin";
+import { suggestThirdsAssignment } from "@/lib/bracket";
 
 export type ThirdOption = { group: string; team: Team; qualified: boolean };
 export type ThirdSlot = { code: string; rival: string; eligible: string[] };
@@ -35,21 +36,13 @@ export function GenerateBracketPanel({
   const qualifiedThirds = thirds.filter((t) => t.qualified);
   const groupById = new Map(qualifiedThirds.map((t) => [t.team.id, t.group]));
 
-  // Sugerencia inicial: a cada llave, el primer tercero elegible aún libre.
-  const [assignment, setAssignment] = useState<Record<string, number>>(() => {
-    const init: Record<string, number> = {};
-    const used = new Set<number>();
-    for (const slot of slots) {
-      const pick = qualifiedThirds.find(
-        (t) => slot.eligible.includes(t.group) && !used.has(t.team.id)
-      );
-      if (pick) {
-        init[slot.code] = pick.team.id;
-        used.add(pick.team.id);
-      }
-    }
-    return init;
-  });
+  // Sugerencia inicial por emparejamiento óptimo (válida y completa si existe).
+  const [assignment, setAssignment] = useState<Record<string, number>>(() =>
+    suggestThirdsAssignment(
+      slots,
+      qualifiedThirds.map((t) => ({ teamId: t.team.id, group: t.group }))
+    )
+  );
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
