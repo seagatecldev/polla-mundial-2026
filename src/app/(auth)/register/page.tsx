@@ -6,6 +6,7 @@ import Link from "next/link";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Button } from "@/components/ui/Button";
 
 type CedulaStatus = "idle" | "checking" | "ok" | "used" | "notfound" | "error";
@@ -17,6 +18,7 @@ export default function RegisterPage() {
   const [cedulaStatus, setCedulaStatus] = useState<CedulaStatus>("idle");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -67,6 +69,10 @@ export default function RegisterPage() {
     }
     if (password.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+    if (password !== confirm) {
+      setError("Las contraseñas no coinciden.");
       return;
     }
 
@@ -152,15 +158,24 @@ export default function RegisterPage() {
         onChange={(e) => setEmail(e.target.value)}
         placeholder="tu@correo.com"
       />
-      <Input
+      <PasswordInput
         label="Contraseña"
-        type="password"
         name="password"
         autoComplete="new-password"
         required
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="Mínimo 6 caracteres"
+      />
+      <PasswordInput
+        label="Repetir contraseña"
+        name="confirm_password"
+        autoComplete="new-password"
+        required
+        value={confirm}
+        onChange={(e) => setConfirm(e.target.value)}
+        placeholder="Escribe la misma contraseña"
+        error={confirm.length > 0 && confirm !== password ? "Las contraseñas no coinciden." : undefined}
       />
       {error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-flame dark:bg-red-900/30">

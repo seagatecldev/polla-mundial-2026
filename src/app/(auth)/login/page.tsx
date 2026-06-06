@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Button } from "@/components/ui/Button";
 
 function LoginForm() {
@@ -48,9 +49,8 @@ function LoginForm() {
         onChange={(e) => setEmail(e.target.value)}
         placeholder="tu@correo.com"
       />
-      <Input
+      <PasswordInput
         label="Contraseña"
-        type="password"
         name="password"
         autoComplete="current-password"
         required
