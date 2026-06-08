@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { config } from "@/lib/config";
 
-/** Imagen que se oculta sola si el archivo aún no existe (evita el ícono roto). */
-function SafeLogo({ src, alt, className }: { src: string; alt: string; className?: string }) {
+/** Imagen que se oculta sola si el src está vacío o el archivo no existe (evita el ícono roto). */
+function SafeLogo({ src, alt, className }: { src?: string; alt: string; className?: string }) {
   const [ok, setOk] = useState(true);
-  if (!ok) return null;
+  if (!src || !src.trim() || !ok) return null;
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={src} alt={alt} className={className} onError={() => setOk(false)} />;
 }
