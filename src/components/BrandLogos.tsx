@@ -19,14 +19,18 @@ function SafeLogo({ src, alt, className }: { src: string; alt: string; className
 export function BrandLogos({ size = "md" }: { size?: "sm" | "md" }) {
   const h = size === "sm" ? "h-9" : "h-16 sm:h-20";
   const { logoPrimary, logoPrimaryAlt, logoSecondary, logoSecondaryAlt } = config.brand;
+  // Sin logos configurados (p. ej. demo genérica): no renderiza nada.
+  if (!logoPrimary && !logoSecondary) return null;
   return (
     <div className="flex items-center justify-center gap-4 animate-fade-in">
-      <SafeLogo
-        src={logoPrimary}
-        alt={logoPrimaryAlt}
-        className={`${h} w-auto rounded-xl object-contain shadow-sm`}
-      />
-      {logoSecondary && (
+      {logoPrimary && (
+        <SafeLogo
+          src={logoPrimary}
+          alt={logoPrimaryAlt}
+          className={`${h} w-auto rounded-xl object-contain shadow-sm`}
+        />
+      )}
+      {logoPrimary && logoSecondary && (
         <>
           <span className="h-10 w-px bg-gray-300/60 dark:bg-gray-600/60" aria-hidden />
           <SafeLogo
