@@ -16,10 +16,11 @@ function LoginForm() {
   const params = useSearchParams();
   const redirect = params.get("redirect") || "/";
 
-  const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
+  const [identifier, setIdentifier] = useState(config.demo.email);
+  const [password, setPassword] = useState(config.demo.password);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const isDemo = Boolean(config.demo.email && config.demo.password);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -90,6 +91,11 @@ function LoginForm() {
       <Button type="submit" fullWidth size="lg" loading={loading}>
         Entrar
       </Button>
+      {isDemo && (
+        <p className="rounded-lg bg-pitch/5 px-3 py-2 text-center text-xs text-gray-500 dark:bg-pitch/10 dark:text-gray-400">
+          Cuenta de demostración — solo presiona <span className="font-semibold">Entrar</span>.
+        </p>
+      )}
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">
         ¿No tienes cuenta?{" "}
         <Link href="/register" className="font-semibold text-pitch hover:underline">

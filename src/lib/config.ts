@@ -27,6 +27,12 @@ export const config = {
     // Por defecto ACTIVADO (versión empresa). Se desactiva con "false".
     requireCedula: process.env.NEXT_PUBLIC_REQUIRE_CEDULA !== "false",
   },
+  // Cuenta de demostración: si se definen, el login se pre-rellena con estas
+  // credenciales (solo se usan en el despliegue de la demo).
+  demo: {
+    email: process.env.NEXT_PUBLIC_DEMO_EMAIL ?? "",
+    password: process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? "",
+  },
   // Color de marca principal (para metadata themeColor; el tema visual completo
   // se define en tailwind.config.ts leyendo las mismas variables en build).
   colorPrimary: process.env.NEXT_PUBLIC_COLOR_PRIMARY ?? "#152C5B",
