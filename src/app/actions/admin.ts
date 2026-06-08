@@ -4,21 +4,25 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { CACHE_TAGS, getMatches, getTeams } from "@/lib/data";
-import { computeQualification } from "@/lib/qualification";
-import { parseEligibleGroups } from "@/lib/bracket";
+import {
+  computeQualification,
+  buildGroupTables,
+  defaultPositions,
+  defaultQualifiedThirdIds,
+  validateResolution,
+  type Resolution,
+} from "@/lib/qualification";
+import { parseEligibleGroups, suggestThirdsAssignment } from "@/lib/bracket";
 
 export type AdminActionResult = { ok: true; message: string } | { ok: false; error: string };
 
 /**
  * Genera (o regenera) el cuadro de Dieciseisavos a partir de los resultados de
- * grupos. Los 1º/2º se asignan automáticamente; los 8 terceros según la
- * asignación que confirma el admin, respetando los grupos elegibles de cada llave.
- *
- * thirdsAssignment: lista { bracketCode (73..104) -> teamId del tercero }.
+ * grupos. El admin confirma el orden (1º/2º/3º por grupo), qué terceros
+ * clasifican y su asignación a las llaves, todo dentro de una `resolution`.
+ * Si no se envía resolución, se usa el cálculo automático actual (no-regresión).
  */
-export async function generateKnockout(
-  thirdsAssignment: { bracketCode: string; teamId: number }[]
-): Promise<AdminActionResult> {
+export async function generateKnockout(resolution?: Resolution): Promise<AdminActionResult> {
   const admin = await requireAdmin();
   if (!admin) return { ok: false, error: "No autorizado." };
 
@@ -32,6 +36,7 @@ export async function generateKnockout(
     return { ok: false, error: "Aún faltan resultados de la fase de grupos." };
   }
 
+  const tables = buildGroupTables(teams, groupMatches);
   const supabase = createAdminClient();
 
   // Leer las llaves de R32 (incluye las fuentes y el formato de tercero)
@@ -46,39 +51,55 @@ export async function generateKnockout(
     .map((m) => ({ code: m.bracket_code as string, eligible: parseEligibleGroups(m.away_source) }))
     .filter((s): s is { code: string; eligible: string[] } => s.eligible !== null);
 
-  // Tercero clasificado -> grupo del que viene
-  const qualifiedThirds = q.thirds.filter((t) => t.qualified);
-  const thirdGroupById = new Map(qualifiedThirds.map((t) => [t.team.id, t.group]));
+  // Respaldo: si no llega resolución, reconstruir la automática (orden actual).
+  if (!resolution) {
+    const positions = defaultPositions(tables);
+    const qualified = defaultQualifiedThirdIds(positions, tables);
+    const groupByTeam = new Map(positions.map((p) => [p.thirdId, p.group]));
+    const assignment = suggestThirdsAssignment(
+      thirdSlots,
+      qualified.map((id) => ({ teamId: id, group: groupByTeam.get(id) as string }))
+    );
+    resolution = {
+      positions,
+      thirdsAssignment: Object.entries(assignment).map(([bracketCode, teamId]) => ({
+        bracketCode,
+        teamId,
+      })),
+    };
+  }
 
-  // --- Validación de la asignación de terceros ---
-  if (thirdsAssignment.length !== thirdSlots.length) {
+  // --- Validación estructural de la resolución (1º/2º/3º, terceros) ---
+  const v = validateResolution(tables, resolution);
+  if (!v.ok) return { ok: false, error: v.error };
+
+  // --- Validación de elegibilidad por llave (3[GRUPOS]) ---
+  const thirdGroupById = new Map(resolution.positions.map((p) => [p.thirdId, p.group]));
+  if (resolution.thirdsAssignment.length !== thirdSlots.length) {
     return { ok: false, error: `Debes asignar los ${thirdSlots.length} terceros clasificados.` };
   }
   const slotByCode = new Map(thirdSlots.map((s) => [s.code, s]));
-  const usedTeams = new Set<number>();
   const thirdsMap: Record<string, number> = {};
-  for (const a of thirdsAssignment) {
+  for (const a of resolution.thirdsAssignment) {
     const slot = slotByCode.get(a.bracketCode);
     if (!slot) return { ok: false, error: "Llave de tercero inválida." };
     const grp = thirdGroupById.get(a.teamId);
-    if (!grp) return { ok: false, error: "Un tercero asignado no está entre los 8 mejores." };
+    if (!grp) return { ok: false, error: "Un tercero asignado no es 3º de ningún grupo." };
     if (!slot.eligible.includes(grp)) {
       return {
         ok: false,
         error: `Ese tercero (grupo ${grp}) no puede ir en la llave ${a.bracketCode}.`,
       };
     }
-    if (usedTeams.has(a.teamId)) {
-      return { ok: false, error: "Hay terceros repetidos en la asignación." };
-    }
-    usedTeams.add(a.teamId);
     thirdsMap[a.bracketCode] = a.teamId;
   }
 
-  // --- Mapa de fuentes de grupo a id de equipo ---
+  // --- Mapa de fuentes de grupo a id de equipo (según la resolución) ---
   const sourceToTeam: Record<string, number | null> = {};
-  for (const g of Object.keys(q.winners)) sourceToTeam[`1${g}`] = q.winners[g]?.id ?? null;
-  for (const g of Object.keys(q.runners)) sourceToTeam[`2${g}`] = q.runners[g]?.id ?? null;
+  for (const p of resolution.positions) {
+    sourceToTeam[`1${p.group}`] = p.firstId;
+    sourceToTeam[`2${p.group}`] = p.secondId;
+  }
 
   // Reinicio limpio de TODO el cuadro (evita estados inconsistentes al regenerar)
   const { error: eReset } = await supabase.rpc("reset_knockout");

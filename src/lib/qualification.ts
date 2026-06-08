@@ -90,3 +90,113 @@ export function computeQualification(teams: Team[], groupMatches: Match[]): Qual
 
   return { winners, runners, thirds, complete, warnings };
 }
+
+// ===========================================================================
+// Resolución manual del orden de clasificación (desempates) — funciones puras.
+// El admin puede confirmar/ajustar 1º/2º/3º por grupo y qué terceros clasifican.
+// Por defecto reproducen el cálculo automático actual (no-regresión).
+// ===========================================================================
+
+/** Posiciones elegidas de un grupo (4º no importa). */
+export type GroupPositions = { group: string; firstId: number; secondId: number; thirdId: number };
+
+/** Resolución completa que el cliente envía y el servidor valida. */
+export type Resolution = {
+  positions: GroupPositions[];
+  thirdsAssignment: { bracketCode: string; teamId: number }[];
+};
+
+/** Tercero en el ranking (para la UI de "qué 8 clasifican"). */
+export type RankedThird = { teamId: number; group: string; team: Team; row: StandingRow };
+
+/** Tabla ordenada por grupo (reutiliza computeStandings: misma lógica que la tabla visible). */
+export function buildGroupTables(
+  teams: Team[],
+  groupMatches: Match[]
+): Record<string, StandingRow[]> {
+  const tables: Record<string, StandingRow[]> = {};
+  for (const g of GROUPS) {
+    const groupTeams = teams.filter((t) => t.group_name === g);
+    const matches = groupMatches.filter((m) => m.group_name === g);
+    tables[g] = computeStandings(groupTeams, matches);
+  }
+  return tables;
+}
+
+/** Posiciones por defecto (1º/2º/3º) = orden actual de cada tabla. */
+export function defaultPositions(tables: Record<string, StandingRow[]>): GroupPositions[] {
+  return GROUPS.filter((g) => (tables[g]?.length ?? 0) >= 3).map((g) => ({
+    group: g,
+    firstId: tables[g][0].team.id,
+    secondId: tables[g][1].team.id,
+    thirdId: tables[g][2].team.id,
+  }));
+}
+
+/** Los terceros (según positions.thirdId) ordenados mejor→peor. */
+export function rankThirds(
+  positions: GroupPositions[],
+  tables: Record<string, StandingRow[]>
+): RankedThird[] {
+  const arr = positions
+    .map((p): RankedThird | null => {
+      const row = tables[p.group]?.find((r) => r.team.id === p.thirdId);
+      return row ? { teamId: p.thirdId, group: p.group, team: row.team, row } : null;
+    })
+    .filter((x): x is RankedThird => x !== null);
+  arr.sort(
+    (a, b) =>
+      b.row.points - a.row.points ||
+      b.row.gd - a.row.gd ||
+      b.row.gf - a.row.gf ||
+      a.team.name.localeCompare(b.team.name)
+  );
+  return arr;
+}
+
+/** IDs de los 8 mejores terceros por defecto. */
+export function defaultQualifiedThirdIds(
+  positions: GroupPositions[],
+  tables: Record<string, StandingRow[]>
+): number[] {
+  return rankThirds(positions, tables)
+    .slice(0, 8)
+    .map((t) => t.teamId);
+}
+
+/**
+ * Valida la integridad ESTRUCTURAL de una resolución (no exige empate):
+ *  - cada grupo aparece una vez; 1º/2º/3º son 3 equipos distintos del grupo;
+ *  - los terceros asignados son 3º de algún grupo y no se repiten.
+ * La elegibilidad por llave (3[GRUPOS]) la valida el servidor con los slots de R32.
+ */
+export function validateResolution(
+  tables: Record<string, StandingRow[]>,
+  resolution: Resolution
+): { ok: true } | { ok: false; error: string } {
+  const groupsWith3 = GROUPS.filter((g) => (tables[g]?.length ?? 0) >= 3);
+  const posByGroup = new Map<string, GroupPositions>();
+  for (const p of resolution.positions) {
+    if (posByGroup.has(p.group)) return { ok: false, error: `Grupo ${p.group} repetido.` };
+    posByGroup.set(p.group, p);
+  }
+  for (const g of groupsWith3) {
+    const p = posByGroup.get(g);
+    if (!p) return { ok: false, error: `Falta el orden del grupo ${g}.` };
+    const ids = [p.firstId, p.secondId, p.thirdId];
+    if (new Set(ids).size !== 3)
+      return { ok: false, error: `Grupo ${g}: 1º, 2º y 3º deben ser equipos distintos.` };
+    const groupIds = new Set(tables[g].map((r) => r.team.id));
+    if (!ids.every((id) => groupIds.has(id)))
+      return { ok: false, error: `Grupo ${g}: un equipo no pertenece al grupo.` };
+  }
+  const thirdIds = new Set(resolution.positions.map((p) => p.thirdId));
+  const used = new Set<number>();
+  for (const a of resolution.thirdsAssignment) {
+    if (!thirdIds.has(a.teamId))
+      return { ok: false, error: "Un tercero asignado no es 3º de ningún grupo." };
+    if (used.has(a.teamId)) return { ok: false, error: "Hay terceros repetidos en la asignación." };
+    used.add(a.teamId);
+  }
+  return { ok: true };
+}

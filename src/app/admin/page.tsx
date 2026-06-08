@@ -2,7 +2,7 @@ import { AdminMatchRow } from "@/components/admin/AdminMatchRow";
 import { GenerateBracketPanel } from "@/components/admin/GenerateBracketPanel";
 import { parseEligibleGroups } from "@/lib/bracket";
 import { getMatches, getTeams } from "@/lib/data";
-import { computeQualification } from "@/lib/qualification";
+import { computeQualification, buildGroupTables } from "@/lib/qualification";
 import { GROUPS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -27,9 +27,8 @@ export default async function AdminPage() {
   // Datos de clasificación para el panel de generación del cuadro.
   const q = computeQualification(teams, groupMatches);
   const alreadyGenerated = r32.some((m) => m.home_team_id != null);
-  const winners = GROUPS.map((g) => ({ group: g, team: q.winners[g] ?? null }));
-  const runners = GROUPS.map((g) => ({ group: g, team: q.runners[g] ?? null }));
-  const thirds = q.thirds.map((t) => ({ group: t.group, team: t.team, qualified: t.qualified }));
+  const tables = buildGroupTables(teams, groupMatches);
+  const groupTables = GROUPS.map((g) => ({ group: g, rows: tables[g] ?? [] }));
 
   // Llaves de tercero (R32 con visitante "3[...]"), con su rival y grupos elegibles.
   const slots = r32
@@ -54,9 +53,7 @@ export default async function AdminPage() {
           <GenerateBracketPanel
             complete={q.complete}
             alreadyGenerated={alreadyGenerated}
-            winners={winners}
-            runners={runners}
-            thirds={thirds}
+            groupTables={groupTables}
             slots={slots}
             warnings={q.warnings}
           />
