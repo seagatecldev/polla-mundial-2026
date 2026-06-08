@@ -8,6 +8,7 @@ import { NAV_ITEMS, isNavActive } from "@/lib/nav";
 import { Avatar } from "@/components/ui/Avatar";
 import { SignOutButton } from "@/components/SignOutButton";
 import { BrandLogos } from "@/components/BrandLogos";
+import { config } from "@/lib/config";
 
 type Props = {
   userId: string;
@@ -29,7 +30,7 @@ export function SideNav({ userId, name, points, isAdmin }: Props) {
       <div className="flex flex-col gap-2 px-5 py-5">
         <BrandLogos size="sm" />
         <span className="text-sm font-extrabold leading-tight text-pitch dark:text-pitch-light">
-          Mundial 2026
+          {config.app.name}
         </span>
       </div>
 

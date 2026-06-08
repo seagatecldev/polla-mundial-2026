@@ -1,19 +1,19 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { config } from "@/lib/config";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Seagate Mundial 2026",
-  description:
-    "El torneo de predicciones del Mundial FIFA 2026 de Seagate: predice los marcadores, gana puntos y compite en el ranking.",
-  applicationName: "Seagate Mundial 2026",
+  title: config.app.name,
+  description: config.app.description,
+  applicationName: config.app.name,
   manifest: undefined,
 };
 
 export const viewport: Viewport = {
-  themeColor: "#152C5B",
+  themeColor: config.colorPrimary,
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

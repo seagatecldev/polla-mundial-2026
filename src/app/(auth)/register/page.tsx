@@ -5,17 +5,21 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { config } from "@/lib/config";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Button } from "@/components/ui/Button";
 
 type CedulaStatus = "idle" | "checking" | "ok" | "used" | "notfound" | "error";
 
+const requireCedula = config.features.requireCedula;
+
 export default function RegisterPage() {
   const router = useRouter();
   const [cedula, setCedula] = useState("");
   const [empName, setEmpName] = useState<string | null>(null);
   const [cedulaStatus, setCedulaStatus] = useState<CedulaStatus>("idle");
+  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -63,9 +67,16 @@ export default function RegisterPage() {
     setError(null);
     setInfo(null);
 
-    if (cedulaStatus !== "ok") {
-      setError("Primero verifica tu número de cédula.");
-      return;
+    if (requireCedula) {
+      if (cedulaStatus !== "ok") {
+        setError("Primero verifica tu número de cédula.");
+        return;
+      }
+    } else {
+      if (displayName.trim().length < 2) {
+        setError("Ingresa tu nombre (al menos 2 caracteres).");
+        return;
+      }
     }
     if (password.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres.");
@@ -81,7 +92,9 @@ export default function RegisterPage() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { cedula } },
+      options: {
+        data: requireCedula ? { cedula } : { display_name: displayName.trim() },
+      },
     });
 
     if (error) {
@@ -108,45 +121,60 @@ export default function RegisterPage() {
     }
   }
 
+  const submitDisabled = requireCedula && cedulaStatus !== "ok";
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div>
+      {requireCedula ? (
+        <div>
+          <Input
+            label="Número de cédula"
+            name="cedula"
+            inputMode="numeric"
+            autoComplete="off"
+            required
+            value={cedula}
+            onChange={onCedulaChange}
+            onBlur={checkCedula}
+            placeholder="Ej. 0927430587"
+            maxLength={10}
+            error={
+              cedulaStatus === "notfound"
+                ? "Cédula no está en la lista de empleados. Verifica el número."
+                : cedulaStatus === "used"
+                ? "Esta cédula ya tiene una cuenta registrada."
+                : cedulaStatus === "error"
+                ? "No se pudo verificar. Revisa tu conexión e inténtalo de nuevo."
+                : undefined
+            }
+          />
+          {/* Estado de la verificación */}
+          {cedulaStatus === "checking" && (
+            <p className="mt-1.5 flex items-center gap-1.5 text-sm text-gray-500">
+              <Loader2 size={14} className="animate-spin" /> Verificando…
+            </p>
+          )}
+          {cedulaStatus === "ok" && empName && (
+            <p className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-green-700 dark:text-green-400">
+              <CheckCircle2 size={15} /> {empName}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-400">
+            Ingresa tu cédula tal como aparece en tu documento (10 dígitos).
+          </p>
+        </div>
+      ) : (
         <Input
-          label="Número de cédula"
-          name="cedula"
-          inputMode="numeric"
-          autoComplete="off"
+          label="Nombre para mostrar"
+          name="display_name"
+          autoComplete="name"
           required
-          value={cedula}
-          onChange={onCedulaChange}
-          onBlur={checkCedula}
-          placeholder="Ej. 0927430587"
-          maxLength={10}
-          error={
-            cedulaStatus === "notfound"
-              ? "Cédula no está en la lista de empleados. Verifica el número."
-              : cedulaStatus === "used"
-              ? "Esta cédula ya tiene una cuenta registrada."
-              : cedulaStatus === "error"
-              ? "No se pudo verificar. Revisa tu conexión e inténtalo de nuevo."
-              : undefined
-          }
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          placeholder="Tu nombre"
+          maxLength={40}
         />
-        {/* Estado de la verificación */}
-        {cedulaStatus === "checking" && (
-          <p className="mt-1.5 flex items-center gap-1.5 text-sm text-gray-500">
-            <Loader2 size={14} className="animate-spin" /> Verificando…
-          </p>
-        )}
-        {cedulaStatus === "ok" && empName && (
-          <p className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-green-700 dark:text-green-400">
-            <CheckCircle2 size={15} /> {empName}
-          </p>
-        )}
-        <p className="mt-1 text-xs text-gray-400">
-          Ingresa tu cédula tal como aparece en tu documento (10 dígitos).
-        </p>
-      </div>
+      )}
 
       <Input
         label="Correo electrónico"
@@ -187,7 +215,7 @@ export default function RegisterPage() {
           {info}
         </p>
       )}
-      <Button type="submit" fullWidth size="lg" loading={loading} disabled={cedulaStatus !== "ok"}>
+      <Button type="submit" fullWidth size="lg" loading={loading} disabled={submitDisabled}>
         Crear cuenta
       </Button>
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">

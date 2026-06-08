@@ -10,19 +10,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Paleta Mundial 2026 — Selección de Ecuador (FEF): azul marino + rojo
+        // Paleta de marca (white-label). Los colores se leen de variables de
+        // entorno al COMPILAR, con default = paleta actual (Seagate / Ecuador).
+        // Cada cliente cambia su color principal en su .env sin tocar código.
         pitch: {
-          DEFAULT: "#152C5B", // azul marino profundo (color de marca principal)
-          dark: "#0D1C3D", // marino casi negro (cabeceras, gradientes, hover)
-          light: "#4F7AD1", // azul claro legible en modo oscuro
+          DEFAULT: process.env.NEXT_PUBLIC_COLOR_PRIMARY ?? "#152C5B",
+          dark: process.env.NEXT_PUBLIC_COLOR_PRIMARY_DARK ?? "#0D1C3D",
+          light: process.env.NEXT_PUBLIC_COLOR_PRIMARY_LIGHT ?? "#4F7AD1",
         },
         flame: {
-          DEFAULT: "#C8102E", // rojo Ecuador
-          dark: "#9E0C24",
+          DEFAULT: process.env.NEXT_PUBLIC_COLOR_ACCENT ?? "#C8102E",
+          dark: process.env.NEXT_PUBLIC_COLOR_ACCENT_DARK ?? "#9E0C24",
         },
         gold: {
-          DEFAULT: "#C9A227", // dorado metálico apagado (uso mínimo)
-          dark: "#A8851C",
+          DEFAULT: process.env.NEXT_PUBLIC_COLOR_GOLD ?? "#C9A227",
+          dark: process.env.NEXT_PUBLIC_COLOR_GOLD_DARK ?? "#A8851C",
         },
       },
       fontFamily: {
