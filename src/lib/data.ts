@@ -55,8 +55,8 @@ export const getTeams = unstable_cache(
     const { data } = await supabase.from("teams").select("*").order("id");
     return data ?? [];
   },
-  ["teams"],
-  { revalidate: 3600, tags: [CACHE_TAGS.teams] }
+  ["teams-v2"],
+  { revalidate: 600, tags: [CACHE_TAGS.teams] }
 );
 
 type MatchOpts = { phase?: string; group?: string; status?: string; limit?: number };
