@@ -14,7 +14,7 @@ export default async function ThLayout({ children }: { children: React.ReactNode
           <ArrowLeft size={20} />
         </Link>
         <Users size={18} />
-        <h1 className="text-base font-bold">Talento Humano — Seguimiento</h1>
+        <h1 className="text-base font-bold">Seguimiento</h1>
       </header>
       <main className="flex-1 px-4 py-4 lg:px-8 lg:py-8">
         <div className="mx-auto w-full max-w-content">{children}</div>

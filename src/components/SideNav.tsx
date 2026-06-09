@@ -80,9 +80,9 @@ export function SideNav({ userId, name, points, isAdmin, isTH }: Props) {
             <Link
               href="/th"
               className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-pitch dark:text-gray-400 dark:hover:bg-gray-800"
-              title="Talento Humano"
+              title="Seguimiento"
             >
-              <Users size={18} /> Talento Humano
+              <Users size={18} /> Seguimiento
             </Link>
           )}
           {isAdmin && (

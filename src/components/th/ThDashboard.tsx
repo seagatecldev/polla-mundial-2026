@@ -121,7 +121,7 @@ export function ThDashboard({ empleados, predicciones, participacion }: Props) {
             )
           }
         >
-          <Table head={["#", "Nombre", "Cédula", "Correo", "Registrado (Ecuador)", "Predic.", "Pts"]}>
+          <Table head={["#", "Nombre", "Cédula", "Correo", "Registrado", "Predic.", "Pts"]}>
             {registrados
               .filter((e) => match(e.cedula, e.nombre, e.correo))
               .map((e, i) => (

@@ -45,8 +45,8 @@ export default async function MainLayout({ children }: { children: React.ReactNo
               <Link
                 href="/th"
                 className="rounded-full p-2 text-gray-400 transition hover:bg-gray-100 hover:text-pitch dark:hover:bg-gray-800"
-                aria-label="Panel de Talento Humano"
-                title="Talento Humano"
+                aria-label="Panel de seguimiento"
+                title="Seguimiento"
               >
                 <Users size={20} />
               </Link>
