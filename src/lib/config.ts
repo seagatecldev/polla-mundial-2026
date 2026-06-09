@@ -33,6 +33,12 @@ export const config = {
     email: process.env.NEXT_PUBLIC_DEMO_EMAIL ?? "",
     password: process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? "",
   },
+  // Correos con acceso al panel de Talento Humano (/th). Lista separada por comas.
+  // Vacío por defecto → nadie tiene acceso (la demo no lo usa).
+  thEmails: (process.env.NEXT_PUBLIC_TH_EMAILS ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean),
   // Color de marca principal (para metadata themeColor; el tema visual completo
   // se define en tailwind.config.ts leyendo las mismas variables en build).
   colorPrimary: process.env.NEXT_PUBLIC_COLOR_PRIMARY ?? "#152C5B",

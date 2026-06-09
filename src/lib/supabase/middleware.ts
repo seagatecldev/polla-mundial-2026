@@ -1,8 +1,14 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PRIVATE_PATHS = ["/mis-predicciones", "/ranking", "/perfil", "/admin"];
+const PRIVATE_PATHS = ["/mis-predicciones", "/ranking", "/perfil", "/admin", "/th"];
 const AUTH_PATHS = ["/login", "/register"];
+
+// Correos con acceso al panel de Talento Humano (/th). El admin también entra.
+const TH_EMAILS = (process.env.NEXT_PUBLIC_TH_EMAILS ?? "")
+  .split(",")
+  .map((s) => s.trim().toLowerCase())
+  .filter(Boolean);
 
 /**
  * Refresca la sesión de Supabase y aplica las reglas de acceso.
@@ -50,6 +56,17 @@ export async function updateSession(request: NextRequest) {
   // /admin: solo el email autorizado
   if (pathname.startsWith("/admin")) {
     if (user?.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // /th: solo Talento Humano (o el admin)
+  if (pathname.startsWith("/th")) {
+    const email = (user?.email ?? "").toLowerCase();
+    const isAdmin = email === (process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "").toLowerCase();
+    if (!isAdmin && !TH_EMAILS.includes(email)) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
       return NextResponse.redirect(url);

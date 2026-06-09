@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield } from "lucide-react";
+import { Shield, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, isNavActive } from "@/lib/nav";
 import { Avatar } from "@/components/ui/Avatar";
@@ -15,13 +15,14 @@ type Props = {
   name: string;
   points: number;
   isAdmin: boolean;
+  isTH?: boolean;
 };
 
 /**
  * Barra lateral de navegación para escritorio (≥lg). En móvil se oculta y se
  * usa la BottomNav + el header superior.
  */
-export function SideNav({ userId, name, points, isAdmin }: Props) {
+export function SideNav({ userId, name, points, isAdmin, isTH }: Props) {
   const pathname = usePathname();
 
   return (
@@ -72,20 +73,32 @@ export function SideNav({ userId, name, points, isAdmin }: Props) {
         </ul>
       </nav>
 
-      {/* Pie: admin + cerrar sesión */}
-      <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 dark:border-gray-800">
-        {isAdmin ? (
-          <Link
-            href="/admin"
-            className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-pitch dark:text-gray-400 dark:hover:bg-gray-800"
-            title="Admin"
-          >
-            <Shield size={18} />
-            Admin
-          </Link>
-        ) : (
-          <span />
-        )}
+      {/* Accesos de rol (TH / admin) */}
+      {(isTH || isAdmin) && (
+        <div className="flex flex-wrap gap-1 border-t border-gray-200 px-3 py-2 dark:border-gray-800">
+          {isTH && (
+            <Link
+              href="/th"
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-pitch dark:text-gray-400 dark:hover:bg-gray-800"
+              title="Talento Humano"
+            >
+              <Users size={18} /> Talento Humano
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-pitch dark:text-gray-400 dark:hover:bg-gray-800"
+              title="Admin"
+            >
+              <Shield size={18} /> Admin
+            </Link>
+          )}
+        </div>
+      )}
+
+      {/* Pie: cerrar sesión */}
+      <div className="flex items-center justify-end border-t border-gray-200 px-4 py-3 dark:border-gray-800">
         <SignOutButton />
       </div>
     </aside>

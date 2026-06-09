@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Shield } from "lucide-react";
+import { Shield, Users } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { SideNav } from "@/components/SideNav";
 import { SignOutButton } from "@/components/SignOutButton";
 import { Avatar } from "@/components/ui/Avatar";
 import { getCurrentUser, getProfile } from "@/lib/data";
+import { isThEmail } from "@/lib/auth";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
@@ -15,6 +16,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   const profile = await getProfile(user.id);
   const name = profile?.display_name ?? user.email ?? "Jugador";
   const isAdmin = user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  const isTH = isThEmail(user.email);
 
   return (
     <div className="app-shell lg:flex-row">
@@ -24,6 +26,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         name={name}
         points={profile?.total_points ?? 0}
         isAdmin={isAdmin}
+        isTH={isTH}
       />
 
       {/* Columna principal */}
@@ -38,6 +41,16 @@ export default async function MainLayout({ children }: { children: React.ReactNo
             </div>
           </Link>
           <div className="flex items-center gap-1">
+            {isTH && (
+              <Link
+                href="/th"
+                className="rounded-full p-2 text-gray-400 transition hover:bg-gray-100 hover:text-pitch dark:hover:bg-gray-800"
+                aria-label="Panel de Talento Humano"
+                title="Talento Humano"
+              >
+                <Users size={20} />
+              </Link>
+            )}
             {isAdmin && (
               <Link
                 href="/admin"
