@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/Button";
 import { Flag } from "@/components/ui/Flag";
 import { formatMatchDate } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 
 type Props = {
   match: Match;
@@ -16,10 +15,18 @@ type Props = {
   initialAway?: number | null;
   initialWinner?: number | null;
   onClose: () => void;
+  /** Se llama tras guardar con éxito, para actualizar el pick al instante (UI optimista). */
+  onSaved?: (home: number, away: number, winner: number | null) => void;
 };
 
-export function PredictionForm({ match, initialHome, initialAway, initialWinner, onClose }: Props) {
-  const router = useRouter();
+export function PredictionForm({
+  match,
+  initialHome,
+  initialAway,
+  initialWinner,
+  onClose,
+  onSaved,
+}: Props) {
   const [home, setHome] = useState<string>(initialHome != null ? String(initialHome) : "");
   const [away, setAway] = useState<string>(initialAway != null ? String(initialAway) : "");
   const [winnerId, setWinnerId] = useState<number | null>(initialWinner ?? null);
@@ -88,7 +95,8 @@ export function PredictionForm({ match, initialHome, initialAway, initialWinner,
       return;
     }
 
-    router.refresh();
+    // UI optimista: reflejar el pick al instante sin recargar desde el servidor.
+    onSaved?.(h, a, isKnockout ? winnerId : null);
     onClose();
   }
 

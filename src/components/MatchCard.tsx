@@ -18,6 +18,9 @@ type Props = {
 
 export function MatchCard({ match, prediction, canPredict = true }: Props) {
   const [open, setOpen] = useState(false);
+  // Copia local para reflejar el pick al instante (UI optimista) sin recargar
+  // la página desde el servidor. Se inicializa con la predicción del render.
+  const [pred, setPred] = useState<Prediction | null>(prediction ?? null);
 
   const started = hasStarted(match.match_date) || match.status !== "upcoming";
   const finished = match.status === "finished" && match.home_score != null;
@@ -71,15 +74,15 @@ export function MatchCard({ match, prediction, canPredict = true }: Props) {
 
       {/* Predicción del usuario */}
       <div className="mt-3 border-t border-gray-100 pt-3 dark:border-gray-800">
-        {prediction ? (
+        {pred ? (
           <div className="flex items-center justify-between">
             <div className="text-sm">
               <span className="text-gray-500 dark:text-gray-400">Tu pick: </span>
               <span className="font-bold tabular-nums">
-                {prediction.pred_home} – {prediction.pred_away}
+                {pred.pred_home} – {pred.pred_away}
               </span>
-              {finished && prediction.points_earned != null && (
-                <PointsBadge points={prediction.points_earned} />
+              {finished && pred.points_earned != null && (
+                <PointsBadge points={pred.points_earned} />
               )}
             </div>
             {editable && (
@@ -106,10 +109,19 @@ export function MatchCard({ match, prediction, canPredict = true }: Props) {
       {open && (
         <PredictionForm
           match={match}
-          initialHome={prediction?.pred_home}
-          initialAway={prediction?.pred_away}
-          initialWinner={prediction?.pred_winner_team_id}
+          initialHome={pred?.pred_home}
+          initialAway={pred?.pred_away}
+          initialWinner={pred?.pred_winner_team_id}
           onClose={() => setOpen(false)}
+          onSaved={(home, away, winner) =>
+            setPred((prev) => ({
+              ...(prev ?? ({ match_id: match.id } as Prediction)),
+              pred_home: home,
+              pred_away: away,
+              pred_winner_team_id: winner,
+              points_earned: null,
+            }))
+          }
         />
       )}
     </div>
