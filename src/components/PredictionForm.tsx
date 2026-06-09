@@ -7,7 +7,7 @@ import type { Match } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Flag } from "@/components/ui/Flag";
 import { formatMatchDate } from "@/lib/utils";
-import { upsertPrediction } from "@/app/actions/predictions";
+import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 type Props = {
@@ -53,12 +53,41 @@ export function PredictionForm({ match, initialHome, initialAway, initialWinner,
       return;
     }
     setSaving(true);
-    const res = await upsertPrediction(match.id, h, a, isKnockout ? winnerId : null);
-    setSaving(false);
-    if (!res.ok) {
-      setError(res.error);
+
+    // Escritura DIRECTA a Supabase (sin pasar por Vercel). La seguridad la
+    // garantiza RLS: solo tu propia predicción y solo si el partido no empezó.
+    const supabase = createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.user) {
+      setSaving(false);
+      setError("Debes iniciar sesión.");
       return;
     }
+
+    const { error } = await supabase.from("predictions").upsert(
+      {
+        user_id: session.user.id,
+        match_id: match.id,
+        pred_home: h,
+        pred_away: a,
+        pred_winner_team_id: isKnockout ? winnerId : null,
+      },
+      { onConflict: "user_id,match_id" }
+    );
+    setSaving(false);
+
+    if (error) {
+      const msg = `${error.code ?? ""} ${error.message ?? ""}`.toLowerCase();
+      if (msg.includes("42501") || msg.includes("row-level security")) {
+        setError("Este partido ya comenzó o no se puede editar.");
+      } else {
+        setError("No se pudo guardar tu predicción. Intenta de nuevo.");
+      }
+      return;
+    }
+
     router.refresh();
     onClose();
   }
