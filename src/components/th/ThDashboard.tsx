@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
-import { Download, Search } from "lucide-react";
+import { Download, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ThEmpleado, ThPrediccion, ThParticipacion } from "@/lib/th";
 
 type Props = {
@@ -12,6 +12,8 @@ type Props = {
 };
 
 type TabKey = "faltantes" | "registrados" | "predicciones" | "partidos";
+
+const PAGE = 20;
 
 /** "2026-06-06T15:22:00" → "2026-06-06 15:22" */
 function fhEc(v: string | null): string {
@@ -29,6 +31,10 @@ function exportXlsx(rows: Record<string, unknown>[], filename: string, sheet: st
 export function ThDashboard({ empleados, predicciones, participacion }: Props) {
   const [tab, setTab] = useState<TabKey>("faltantes");
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(0);
+
+  // Volver a la primera página al cambiar de pestaña o de búsqueda.
+  useEffect(() => setPage(0), [tab, q]);
 
   const registrados = useMemo(() => empleados.filter((e) => e.registrado), [empleados]);
   const faltantes = useMemo(() => empleados.filter((e) => !e.registrado), [empleados]);
@@ -43,6 +49,11 @@ export function ThDashboard({ empleados, predicciones, participacion }: Props) {
   const needle = q.trim().toLowerCase();
   const match = (...vals: (string | null | undefined)[]) =>
     !needle || vals.some((v) => (v ?? "").toLowerCase().includes(needle));
+
+  // Devuelve solo las filas de la página actual (máx. 20).
+  function pageOf<T>(rows: T[]): T[] {
+    return rows.slice(page * PAGE, page * PAGE + PAGE);
+  }
 
   return (
     <div className="space-y-5">
@@ -76,68 +87,74 @@ export function ThDashboard({ empleados, predicciones, participacion }: Props) {
       </div>
 
       {/* === FALTANTES === */}
-      {tab === "faltantes" && (
-        <Section
-          title="Colaboradores que faltan por registrarse"
-          onExport={() =>
-            exportXlsx(
-              faltantes.map((e) => ({ Cédula: e.cedula, Nombre: e.nombre })),
-              "faltan_por_registrarse.xlsx",
-              "Faltantes"
-            )
-          }
-        >
-          <Table head={["Cédula", "Nombre"]}>
-            {faltantes
-              .filter((e) => match(e.cedula, e.nombre))
-              .map((e) => (
-                <tr key={e.cedula} className="border-b border-gray-100 dark:border-gray-800">
-                  <Td>{e.cedula}</Td>
-                  <Td>{e.nombre}</Td>
-                </tr>
-              ))}
-          </Table>
-        </Section>
-      )}
+      {tab === "faltantes" &&
+        (() => {
+          const filtered = faltantes.filter((e) => match(e.cedula, e.nombre));
+          return (
+            <Section
+              title="Colaboradores que faltan por registrarse"
+              onExport={() =>
+                exportXlsx(
+                  faltantes.map((e) => ({ Cédula: e.cedula, Nombre: e.nombre })),
+                  "faltan_por_registrarse.xlsx",
+                  "Faltantes"
+                )
+              }
+            >
+              <Table head={["Cédula", "Nombre"]}>
+                {pageOf(filtered).map((e) => (
+                  <tr key={e.cedula} className="border-b border-gray-100 dark:border-gray-800">
+                    <Td>{e.cedula}</Td>
+                    <Td>{e.nombre}</Td>
+                  </tr>
+                ))}
+              </Table>
+              <Pager total={filtered.length} page={page} setPage={setPage} />
+            </Section>
+          );
+        })()}
 
       {/* === REGISTRADOS (orden de registro, para sorteos) === */}
-      {tab === "registrados" && (
-        <Section
-          title="Registrados — en orden de registro (hora Ecuador)"
-          subtitle="Útil para sorteos de los primeros en registrarse."
-          onExport={() =>
-            exportXlsx(
-              registrados.map((e, i) => ({
-                "#": i + 1,
-                Nombre: e.nombre,
-                Cédula: e.cedula,
-                Correo: e.correo ?? "",
-                "Registrado (Ecuador)": fhEc(e.registrado_ec),
-                Predicciones: e.predicciones,
-                Puntos: e.puntos,
-              })),
-              "registrados.xlsx",
-              "Registrados"
-            )
-          }
-        >
-          <Table head={["#", "Nombre", "Cédula", "Correo", "Registrado", "Predic.", "Pts"]}>
-            {registrados
-              .filter((e) => match(e.cedula, e.nombre, e.correo))
-              .map((e, i) => (
-                <tr key={e.cedula} className="border-b border-gray-100 dark:border-gray-800">
-                  <Td>{i + 1}</Td>
-                  <Td>{e.nombre}</Td>
-                  <Td>{e.cedula}</Td>
-                  <Td>{e.correo}</Td>
-                  <Td>{fhEc(e.registrado_ec)}</Td>
-                  <Td>{e.predicciones}</Td>
-                  <Td>{e.puntos}</Td>
-                </tr>
-              ))}
-          </Table>
-        </Section>
-      )}
+      {tab === "registrados" &&
+        (() => {
+          const filtered = registrados.filter((e) => match(e.cedula, e.nombre, e.correo));
+          return (
+            <Section
+              title="Registrados — en orden de registro (hora Ecuador)"
+              subtitle="Útil para sorteos de los primeros en registrarse."
+              onExport={() =>
+                exportXlsx(
+                  registrados.map((e, i) => ({
+                    "#": i + 1,
+                    Nombre: e.nombre,
+                    Cédula: e.cedula,
+                    Correo: e.correo ?? "",
+                    "Registrado (Ecuador)": fhEc(e.registrado_ec),
+                    Predicciones: e.predicciones,
+                    Puntos: e.puntos,
+                  })),
+                  "registrados.xlsx",
+                  "Registrados"
+                )
+              }
+            >
+              <Table head={["#", "Nombre", "Cédula", "Correo", "Registrado", "Predic.", "Pts"]}>
+                {pageOf(filtered).map((e, i) => (
+                  <tr key={e.cedula} className="border-b border-gray-100 dark:border-gray-800">
+                    <Td>{page * PAGE + i + 1}</Td>
+                    <Td>{e.nombre}</Td>
+                    <Td>{e.cedula}</Td>
+                    <Td>{e.correo}</Td>
+                    <Td>{fhEc(e.registrado_ec)}</Td>
+                    <Td>{e.predicciones}</Td>
+                    <Td>{e.puntos}</Td>
+                  </tr>
+                ))}
+              </Table>
+              <Pager total={filtered.length} page={page} setPage={setPage} />
+            </Section>
+          );
+        })()}
 
       {/* === PREDICCIONES (trazabilidad) === */}
       {tab === "predicciones" && (
@@ -165,10 +182,9 @@ export function ThDashboard({ empleados, predicciones, participacion }: Props) {
           <Table
             head={["Jugador", "Partido", "Pick", "Clasif.", "Fase", "Predicho (Ecuador)"]}
           >
-            {predicciones
-              .filter((p) => match(p.jugador, p.cedula, p.local, p.visitante))
-              .map((p, i) => (
-                <tr key={i} className="border-b border-gray-100 dark:border-gray-800">
+            {pageOf(predicciones.filter((p) => match(p.jugador, p.cedula, p.local, p.visitante))).map(
+              (p, i) => (
+                <tr key={page * PAGE + i} className="border-b border-gray-100 dark:border-gray-800">
                   <Td>{p.jugador}</Td>
                   <Td>{(p.local ?? "?") + " vs " + (p.visitante ?? "?")}</Td>
                   <Td>{p.marcador_predicho}</Td>
@@ -176,8 +192,14 @@ export function ThDashboard({ empleados, predicciones, participacion }: Props) {
                   <Td>{p.fase}</Td>
                   <Td>{fhEc(p.predicho_ec)}</Td>
                 </tr>
-              ))}
+              )
+            )}
           </Table>
+          <Pager
+            total={predicciones.filter((p) => match(p.jugador, p.cedula, p.local, p.visitante)).length}
+            page={page}
+            setPage={setPage}
+          />
         </Section>
       )}
 
@@ -200,17 +222,20 @@ export function ThDashboard({ empleados, predicciones, participacion }: Props) {
           }
         >
           <Table head={["Partido", "Fase", "Grupo", "Predicciones"]}>
-            {participacion
-              .filter((m) => match(m.local, m.visitante, m.fase))
-              .map((m) => (
-                <tr key={m.partido_id} className="border-b border-gray-100 dark:border-gray-800">
-                  <Td>{(m.local ?? "?") + " vs " + (m.visitante ?? "?")}</Td>
-                  <Td>{m.fase}</Td>
-                  <Td>{m.grupo ?? "—"}</Td>
-                  <Td>{m.num_predicciones}</Td>
-                </tr>
-              ))}
+            {pageOf(participacion.filter((m) => match(m.local, m.visitante, m.fase))).map((m) => (
+              <tr key={m.partido_id} className="border-b border-gray-100 dark:border-gray-800">
+                <Td>{(m.local ?? "?") + " vs " + (m.visitante ?? "?")}</Td>
+                <Td>{m.fase}</Td>
+                <Td>{m.grupo ?? "—"}</Td>
+                <Td>{m.num_predicciones}</Td>
+              </tr>
+            ))}
           </Table>
+          <Pager
+            total={participacion.filter((m) => match(m.local, m.visitante, m.fase)).length}
+            page={page}
+            setPage={setPage}
+          />
         </Section>
       )}
     </div>
@@ -305,4 +330,40 @@ function Table({ head, children }: { head: string[]; children: React.ReactNode }
 
 function Td({ children }: { children: React.ReactNode }) {
   return <td className="px-2 py-2 align-top">{children}</td>;
+}
+
+function Pager({
+  total,
+  page,
+  setPage,
+}: {
+  total: number;
+  page: number;
+  setPage: (updater: (p: number) => number) => void;
+}) {
+  const pages = Math.ceil(total / PAGE);
+  if (pages <= 1) return null;
+  return (
+    <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 text-sm dark:border-gray-800">
+      <span className="text-xs text-gray-400">
+        Página {page + 1} de {pages} · {total} resultados
+      </span>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setPage((p) => Math.max(0, p - 1))}
+          disabled={page === 0}
+          className="flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1 font-medium text-gray-600 transition enabled:hover:border-pitch/40 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
+        >
+          <ChevronLeft size={14} /> Anterior
+        </button>
+        <button
+          onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
+          disabled={page >= pages - 1}
+          className="flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1 font-medium text-gray-600 transition enabled:hover:border-pitch/40 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
+        >
+          Siguiente <ChevronRight size={14} />
+        </button>
+      </div>
+    </div>
+  );
 }
