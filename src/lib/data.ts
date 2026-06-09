@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -16,9 +17,10 @@ export const CACHE_TAGS = {
   teams: "teams",
 } as const;
 
-// TTL corto: protege contra ráfagas (100 simultáneos) sin notarse en la práctica.
-// Aun así, las escrituras del admin invalidan por etiqueta al instante.
-const SHARED_TTL = 30;
+// TTL de datos compartidos: protege contra ráfagas y reduce cache-misses (menos
+// renders pesados). Las escrituras del admin invalidan por etiqueta al instante,
+// así que un TTL holgado no retrasa los resultados reales.
+const SHARED_TTL = 120;
 
 // Selección de partido con sus equipos embebidos.
 const MATCH_SELECT = `
@@ -34,19 +36,22 @@ function normalizeMatch(row: any): Match {
   return { ...row, home_team: pick(row.home_team), away_team: pick(row.away_team) };
 }
 
-export async function getCurrentUser() {
+// Memoizado por request (React cache): aunque lo llamen el middleware-no, el
+// layout y la página, dentro de un mismo render se ejecuta una sola vez.
+// Reduce llamadas de auth.getUser() por carga → menos trabajo en Vercel.
+export const getCurrentUser = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   return user;
-}
+});
 
-export async function getProfile(userId: string): Promise<Profile | null> {
+export const getProfile = cache(async (userId: string): Promise<Profile | null> => {
   const supabase = await createClient();
   const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
   return data;
-}
+});
 
 // Datos públicos (equipos): casi estáticos. Cacheados largo, invalidan por "teams".
 export const getTeams = unstable_cache(
