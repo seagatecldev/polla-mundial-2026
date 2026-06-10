@@ -1,0 +1,15 @@
+{
+  "_nota": "Copia este archivo a scripts/sync.config.json (NO se sube al repo) y completa las service_role keys. La service_role está en Supabase → Project Settings → API.",
+  "master": {
+    "nombre": "Seagate (maestro)",
+    "url": "https://XXXXXXXX.supabase.co",
+    "serviceKey": "SERVICE_ROLE_KEY_DEL_MAESTRO"
+  },
+  "clients": [
+    {
+      "nombre": "Cliente 1",
+      "url": "https://YYYYYYYY.supabase.co",
+      "serviceKey": "SERVICE_ROLE_KEY_DEL_CLIENTE_1"
+    }
+  ]
+}

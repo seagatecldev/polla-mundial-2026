@@ -34,3 +34,6 @@ next-env.d.ts
 docs/*.xlsx
 docs/*.xls
 docs/*.csv
+
+# config de sincronización con service_role keys (NUNCA subir)
+scripts/sync.config.json
