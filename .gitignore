@@ -30,10 +30,8 @@ next-env.d.ts
 # vercel
 .vercel
 
-# datos personales (no subir al repo)
-docs/*.xlsx
-docs/*.xls
-docs/*.csv
+# documentos internos y datos personales: SOLO locales, no al repo público
+docs/
 
 # config de sincronización con service_role keys (NUNCA subir)
 scripts/sync.config.json
