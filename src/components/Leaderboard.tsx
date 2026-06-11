@@ -7,6 +7,36 @@ function medal(rank: number): string | null {
   return rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : null;
 }
 
+/**
+ * Reordena SOLO para quien mira: mueve al visor al frente de su propio bloque de
+ * empate (mismo total_points y exact_scores). Es puramente visual y personalizado
+ * por visor; no cambia puntos ni lo que ven los demás. Nunca lo adelanta por
+ * encima de gente con más puntos/exactos. Como la lista ya viene ordenada por esos
+ * campos, los empatados son un bloque contiguo.
+ */
+function floatViewerInTieGroup(profiles: Profile[], currentUserId?: string): Profile[] {
+  if (!currentUserId) return profiles;
+  const idx = profiles.findIndex((p) => p.id === currentUserId);
+  if (idx <= 0) return profiles; // no está, o ya es el primero
+
+  const me = profiles[idx];
+  // Inicio del bloque de empate del visor.
+  let start = idx;
+  while (
+    start > 0 &&
+    profiles[start - 1].total_points === me.total_points &&
+    profiles[start - 1].exact_scores === me.exact_scores
+  ) {
+    start--;
+  }
+  if (start === idx) return profiles; // ya es el primero de su bloque
+
+  const reordered = profiles.slice();
+  reordered.splice(idx, 1); // sacar al visor
+  reordered.splice(start, 0, me); // insertarlo al frente del bloque
+  return reordered;
+}
+
 export function Leaderboard({
   profiles,
   currentUserId,
@@ -24,9 +54,11 @@ export function Leaderboard({
     );
   }
 
+  const view = floatViewerInTieGroup(profiles, currentUserId);
+
   return (
     <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-900">
-      {profiles.map((p, i) => {
+      {view.map((p, i) => {
         const rank = i + 1;
         const isMe = p.id === currentUserId;
         return (
