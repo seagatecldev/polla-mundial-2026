@@ -9,10 +9,11 @@ function medal(rank: number): string | null {
 
 /**
  * Reordena SOLO para quien mira: mueve al visor al frente de su propio bloque de
- * empate (mismo total_points y exact_scores). Es puramente visual y personalizado
- * por visor; no cambia puntos ni lo que ven los demás. Nunca lo adelanta por
- * encima de gente con más puntos/exactos. Como la lista ya viene ordenada por esos
- * campos, los empatados son un bloque contiguo.
+ * empate por PUNTOS (mismo total_points). Es puramente visual y personalizado por
+ * visor; no cambia puntos ni lo que ven los demás. Nunca lo adelanta por encima de
+ * gente con más puntos. Sí puede adelantar a empatados en puntos que tengan más
+ * exactos (el desempate real del juego), pero eso es solo cosmético para el visor.
+ * Como la lista ya viene ordenada por puntos, los empatados son un bloque contiguo.
  */
 function floatViewerInTieGroup(profiles: Profile[], currentUserId?: string): Profile[] {
   if (!currentUserId) return profiles;
@@ -20,13 +21,9 @@ function floatViewerInTieGroup(profiles: Profile[], currentUserId?: string): Pro
   if (idx <= 0) return profiles; // no está, o ya es el primero
 
   const me = profiles[idx];
-  // Inicio del bloque de empate del visor.
+  // Inicio del bloque de empate del visor (por puntos).
   let start = idx;
-  while (
-    start > 0 &&
-    profiles[start - 1].total_points === me.total_points &&
-    profiles[start - 1].exact_scores === me.exact_scores
-  ) {
+  while (start > 0 && profiles[start - 1].total_points === me.total_points) {
     start--;
   }
   if (start === idx) return profiles; // ya es el primero de su bloque
