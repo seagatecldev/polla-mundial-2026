@@ -41,14 +41,25 @@ export type ThParticipacion = {
   num_predicciones: number;
 };
 
+// PostgREST limita cada consulta a ~1000 filas (db-max-rows). Para no perder
+// datos cuando hay muchas predicciones, paginamos con .range() hasta traerlas
+// todas. El tamaño de página (1000) coincide con el tope por petición.
+const PAGE_SIZE = 1000;
+
 async function safeSelect<T>(view: string, order?: { col: string; asc?: boolean }): Promise<T[]> {
   try {
     const supabase = createAdminClient();
-    let q = supabase.from(view).select("*");
-    if (order) q = q.order(order.col, { ascending: order.asc ?? true, nullsFirst: false });
-    const { data, error } = await q;
-    if (error) return [];
-    return (data ?? []) as T[];
+    const rows: T[] = [];
+    for (let from = 0; ; from += PAGE_SIZE) {
+      let q = supabase.from(view).select("*").range(from, from + PAGE_SIZE - 1);
+      if (order) q = q.order(order.col, { ascending: order.asc ?? true, nullsFirst: false });
+      const { data, error } = await q;
+      if (error) return from === 0 ? [] : rows; // primer fallo: vacío; parcial: lo logrado
+      const batch = (data ?? []) as T[];
+      rows.push(...batch);
+      if (batch.length < PAGE_SIZE) break; // última página
+    }
+    return rows;
   } catch {
     return [];
   }
