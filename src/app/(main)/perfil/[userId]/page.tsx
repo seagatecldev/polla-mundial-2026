@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 import { MatchCard } from "@/components/MatchCard";
 import { Avatar } from "@/components/ui/Avatar";
+import { BadgeGrid } from "@/components/BadgeGrid";
+import { VsAverage } from "@/components/VsAverage";
 import { getProfile, getUserPredictionsWithMatch } from "@/lib/data";
+import { getUserBadges, getRacha, getAverages } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +17,12 @@ export default async function PerfilPage({
   const profile = await getProfile(userId);
   if (!profile) notFound();
 
-  const predictions = await getUserPredictionsWithMatch(userId);
+  const [predictions, badges, racha, averages] = await Promise.all([
+    getUserPredictionsWithMatch(userId),
+    getUserBadges(userId),
+    getRacha(userId),
+    getAverages(),
+  ]);
   const finished = predictions.filter(
     (p) => p.match?.status === "finished" && p.points_earned != null
   );
@@ -47,6 +55,14 @@ export default async function PerfilPage({
           <Stat label="Resultados acertados" value={profile.correct_results} />
         </div>
       </div>
+
+      {/* Logros + racha */}
+      <BadgeGrid badges={badges} racha={racha} />
+
+      {/* Comparativa contra el promedio del equipo */}
+      {profile.predictions_count > 0 && (
+        <VsAverage accuracy={accuracy} points={profile.total_points} averages={averages} />
+      )}
 
       {/* Predicciones de partidos terminados */}
       <section>

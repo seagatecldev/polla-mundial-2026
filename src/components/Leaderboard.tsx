@@ -34,14 +34,28 @@ function floatViewerInTieGroup(profiles: Profile[], currentUserId?: string): Pro
   return reordered;
 }
 
+/** Flecha de movimiento de puesto desde la fecha anterior (↑ subió, ↓ bajó, — igual). */
+function MovementArrow({ delta }: { delta: number | undefined }) {
+  if (delta === undefined) return null;
+  if (delta > 0) {
+    return <span className="text-[10px] font-bold tabular-nums text-green-600 dark:text-green-400">▲{delta}</span>;
+  }
+  if (delta < 0) {
+    return <span className="text-[10px] font-bold tabular-nums text-flame">▼{-delta}</span>;
+  }
+  return <span className="text-[10px] text-gray-300 dark:text-gray-600">—</span>;
+}
+
 export function Leaderboard({
   profiles,
   currentUserId,
   compact = false,
+  movement,
 }: {
   profiles: Profile[];
   currentUserId?: string;
   compact?: boolean;
+  movement?: Record<string, number>;
 }) {
   if (profiles.length === 0) {
     return (
@@ -67,8 +81,9 @@ export function Leaderboard({
                 isMe && "bg-pitch/5 dark:bg-pitch/10"
               )}
             >
-              <span className="w-7 text-center text-sm font-bold tabular-nums text-gray-500">
-                {medal(rank) ?? rank}
+              <span className="flex w-7 flex-col items-center text-sm font-bold tabular-nums text-gray-500">
+                <span>{medal(rank) ?? rank}</span>
+                {!compact && movement && <MovementArrow delta={movement[p.id]} />}
               </span>
               <Avatar name={p.display_name} seed={p.id} size="sm" />
               <div className="min-w-0 flex-1">
