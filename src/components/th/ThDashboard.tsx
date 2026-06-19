@@ -173,6 +173,7 @@ export function ThDashboard({ empleados, predicciones, participacion }: Props) {
                 Estado: p.estado,
                 Puntos: p.puntos ?? "",
                 "Predicho (Ecuador)": fhEc(p.predicho_ec),
+                "Actualizado (Ecuador)": fhEc(p.actualizado_ec),
               })),
               "predicciones.xlsx",
               "Predicciones"
@@ -180,7 +181,7 @@ export function ThDashboard({ empleados, predicciones, participacion }: Props) {
           }
         >
           <Table
-            head={["Jugador", "Partido", "Pick", "Clasif.", "Fase", "Predicho (Ecuador)"]}
+            head={["Jugador", "Partido", "Pick", "Clasif.", "Fase", "Predicho (Ecuador)", "Actualizado"]}
           >
             {pageOf(predicciones.filter((p) => match(p.jugador, p.cedula, p.local, p.visitante))).map(
               (p, i) => (
@@ -191,6 +192,7 @@ export function ThDashboard({ empleados, predicciones, participacion }: Props) {
                   <Td>{p.clasificado_predicho ?? "—"}</Td>
                   <Td>{p.fase}</Td>
                   <Td>{fhEc(p.predicho_ec)}</Td>
+                  <Td>{fhEc(p.actualizado_ec)}</Td>
                 </tr>
               )
             )}

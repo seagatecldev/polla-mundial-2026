@@ -28,6 +28,7 @@ export type ThPrediccion = {
   grupo: string | null;
   fecha_partido: string;
   predicho_ec: string | null;
+  actualizado_ec: string | null;
   estado: string;
 };
 
