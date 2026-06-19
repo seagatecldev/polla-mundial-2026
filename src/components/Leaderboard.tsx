@@ -77,7 +77,7 @@ export function Leaderboard({
             <Link
               href={`/perfil/${p.id}`}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 transition hover:bg-gray-50 dark:hover:bg-gray-800/50",
+                "flex items-center gap-2 px-2.5 py-2.5 transition hover:bg-gray-50 dark:hover:bg-gray-800/50 sm:gap-3 sm:px-3",
                 isMe && "bg-pitch/5 dark:bg-pitch/10"
               )}
             >
@@ -87,12 +87,12 @@ export function Leaderboard({
               </span>
               <Avatar name={p.display_name} seed={p.id} size="sm" />
               <div className="min-w-0 flex-1">
-                <p className="line-clamp-1 text-sm font-semibold">
+                <p className="line-clamp-1 text-xs font-semibold sm:text-sm">
                   {p.display_name}
                   {isMe && <span className="ml-1 text-xs text-pitch">(tú)</span>}
                 </p>
                 {!compact && (
-                  <p className="text-[11px] text-gray-400">
+                  <p className="text-[10px] text-gray-400 sm:text-[11px]">
                     {p.exact_scores} exactos · {p.correct_results} aciertos
                   </p>
                 )}
