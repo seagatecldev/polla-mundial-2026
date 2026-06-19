@@ -45,6 +45,12 @@ type Pred = {
 
 const PAGE_SIZE = 1000;
 
+// TTL de las estadísticas derivadas. Se invalidan por etiqueta cuando el admin
+// carga resultados, así que un TTL holgado no retrasa nada; solo evita recomputar
+// (ordenamientos, recorridos por fecha) en cada request → menos Fluid Active CPU.
+const STATS_TTL = 300;
+const STATS_TAGS = [CACHE_TAGS.leaderboard, CACHE_TAGS.matches];
+
 const getAllPredictions = unstable_cache(
   async (): Promise<Pred[]> => {
     const supabase = createAdminClient();
@@ -106,7 +112,8 @@ export type FechaRanking = {
   entries: FechaRankingEntry[]; // ordenado desc; [0] = MVP de la fecha
 };
 
-export async function getFechaRanking(fechaId?: string): Promise<FechaRanking> {
+export const getFechaRanking = unstable_cache(
+  async (fechaId?: string): Promise<FechaRanking> => {
   const [matches, preds, profiles] = await Promise.all([
     getMatches(),
     getAllPredictions(),
@@ -131,7 +138,10 @@ export async function getFechaRanking(fechaId?: string): Promise<FechaRanking> {
     .sort((a, b) => b.puntos - a.puntos || a.profile.display_name.localeCompare(b.profile.display_name));
 
   return { fecha, entries };
-}
+  },
+  ["stats-fecha-ranking"],
+  { revalidate: STATS_TTL, tags: STATS_TAGS }
+);
 
 // ---------------------------------------------------------------------------
 // Movimiento de puestos (↑↓) entre la última fecha y la anterior
@@ -171,7 +181,8 @@ function movementBetween(
 }
 
 /** Movimiento de la última fecha vs la anterior (para las flechas del ranking). */
-export async function getRankMovement(): Promise<Record<string, number>> {
+export const getRankMovement = unstable_cache(
+  async (): Promise<Record<string, number>> => {
   const [matches, preds] = await Promise.all([getMatches(), getAllPredictions()]);
   const fechas = buildFechas(matches);
   if (fechas.length < 2) return {};
@@ -179,7 +190,10 @@ export async function getRankMovement(): Promise<Record<string, number>> {
   const curr = fechas[fechas.length - 1];
   const prev = fechas[fechas.length - 2];
   return Object.fromEntries(movementBetween(preds, matchDate, prev.cutoff, curr.cutoff));
-}
+  },
+  ["stats-rank-movement"],
+  { revalidate: STATS_TTL, tags: STATS_TAGS }
+);
 
 // ---------------------------------------------------------------------------
 // Logros / insignias + racha
@@ -194,7 +208,8 @@ export type Badge = {
 
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
-export async function getUserBadges(userId: string): Promise<Badge[]> {
+export const getUserBadges = unstable_cache(
+  async (userId: string): Promise<Badge[]> => {
   const [matches, preds, profiles] = await Promise.all([
     getMatches(),
     getAllPredictions(),
@@ -269,10 +284,14 @@ export async function getUserBadges(userId: string): Promise<Badge[]> {
       desbloqueado: remontada,
     },
   ];
-}
+  },
+  ["stats-user-badges"],
+  { revalidate: STATS_TTL, tags: STATS_TAGS }
+);
 
 /** Racha actual de aciertos: partidos finished consecutivos (recientes) con puntos > 0. */
-export async function getRacha(userId: string): Promise<number> {
+export const getRacha = unstable_cache(
+  async (userId: string): Promise<number> => {
   const [matches, preds] = await Promise.all([getMatches(), getAllPredictions()]);
   const finishedIds = new Map(
     matches.filter((m) => m.status === "finished").map((m) => [m.id, m.match_date])
@@ -290,14 +309,18 @@ export async function getRacha(userId: string): Promise<number> {
     else break;
   }
   return racha;
-}
+  },
+  ["stats-racha"],
+  { revalidate: STATS_TTL, tags: STATS_TAGS }
+);
 
 // ---------------------------------------------------------------------------
 // Promedios del grupo (para "tú vs promedio")
 // ---------------------------------------------------------------------------
 export type Averages = { avgAccuracy: number; avgPoints: number; avgExactos: number };
 
-export async function getAverages(): Promise<Averages> {
+export const getAverages = unstable_cache(
+  async (): Promise<Averages> => {
   const profiles = (await getLeaderboard()).filter((p) => p.predictions_count > 0);
   if (profiles.length === 0) return { avgAccuracy: 0, avgPoints: 0, avgExactos: 0 };
   const n = profiles.length;
@@ -312,4 +335,7 @@ export async function getAverages(): Promise<Averages> {
     avgPoints: Math.round((sumPts / n) * 10) / 10,
     avgExactos: Math.round((sumExa / n) * 10) / 10,
   };
-}
+  },
+  ["stats-averages"],
+  { revalidate: STATS_TTL, tags: STATS_TAGS }
+);

@@ -20,7 +20,7 @@ export const CACHE_TAGS = {
 // TTL de datos compartidos: protege contra ráfagas y reduce cache-misses (menos
 // renders pesados). Las escrituras del admin invalidan por etiqueta al instante,
 // así que un TTL holgado no retrasa los resultados reales.
-const SHARED_TTL = 120;
+const SHARED_TTL = 300;
 
 // Selección de partido con sus equipos embebidos.
 const MATCH_SELECT = `

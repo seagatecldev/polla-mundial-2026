@@ -15,6 +15,32 @@ const TH_EMAILS = (process.env.NEXT_PUBLIC_TH_EMAILS ?? "")
  * Llamado desde src/middleware.ts en cada request.
  */
 export async function updateSession(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isPrivate = PRIVATE_PATHS.some((p) => pathname.startsWith(p));
+  const isAuthPage = AUTH_PATHS.some((p) => pathname.startsWith(p));
+
+  // Atajo de bajo costo: si la request NO trae cookie de sesión de Supabase, el
+  // usuario es anónimo. No hace falta crear el cliente ni llamar a getUser()
+  // (un viaje a Supabase Auth) — aplicamos las reglas directamente. Esto evita
+  // que el tráfico anónimo (incl. floods) consuma CPU y requests a Supabase.
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
+
+  if (!hasAuthCookie) {
+    if (isPrivate || pathname.startsWith("/admin") || pathname.startsWith("/th")) {
+      const url = request.nextUrl.clone();
+      if (isPrivate) {
+        url.pathname = "/login";
+        url.searchParams.set("redirect", pathname);
+      } else {
+        url.pathname = "/"; // /admin y /th sin sesión → home
+      }
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -40,10 +66,6 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
-  const isPrivate = PRIVATE_PATHS.some((p) => pathname.startsWith(p));
-  const isAuthPage = AUTH_PATHS.some((p) => pathname.startsWith(p));
 
   // Rutas privadas requieren sesión
   if (isPrivate && !user) {
