@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { MatchCard } from "@/components/MatchCard";
+import { PaginatedMatches } from "@/components/PaginatedMatches";
 import { Avatar } from "@/components/ui/Avatar";
 import { BadgeGrid } from "@/components/BadgeGrid";
 import { VsAverage } from "@/components/VsAverage";
@@ -23,9 +23,13 @@ export default async function PerfilPage({
     getRacha(userId),
     getAverages(),
   ]);
-  const finished = predictions.filter(
-    (p) => p.match?.status === "finished" && p.points_earned != null
-  );
+  // Historial: solo partidos jugados, ordenados del MÁS RECIENTE al más antiguo
+  // (por fecha del partido, no por cuándo predijo).
+  const finished = predictions
+    .filter((p) => p.match?.status === "finished" && p.points_earned != null)
+    .sort((a, b) => (a.match!.match_date < b.match!.match_date ? 1 : -1));
+  const finishedMatches = finished.map((p) => p.match!);
+  const finishedPredMap = Object.fromEntries(finished.map((p) => [p.match!.id, p]));
 
   const accuracy =
     profile.predictions_count > 0
@@ -70,13 +74,11 @@ export default async function PerfilPage({
           Predicciones jugadas
         </h2>
         {finished.length > 0 ? (
-          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
-            {finished.map((p) =>
-              p.match ? (
-                <MatchCard key={p.id} match={p.match} prediction={p} canPredict={false} />
-              ) : null
-            )}
-          </div>
+          <PaginatedMatches
+            matches={finishedMatches}
+            predMap={finishedPredMap}
+            canPredict={false}
+          />
         ) : (
           <p className="rounded-2xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-400 dark:border-gray-700">
             Todavía no tiene partidos jugados.

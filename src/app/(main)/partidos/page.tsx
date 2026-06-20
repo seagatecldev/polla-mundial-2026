@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MatchCard } from "@/components/MatchCard";
+import { PaginatedMatches } from "@/components/PaginatedMatches";
 import { getCurrentUser, getMatches, getUserPredictionsMap } from "@/lib/data";
 import { GROUPS, PHASE_LABELS, type Phase, type Prediction } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -59,13 +59,9 @@ export default async function PartidosPage({
         </div>
       )}
 
-      {/* Lista */}
+      {/* Lista (paginada en cliente) */}
       {matches.length > 0 ? (
-        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3">
-          {matches.map((m) => (
-            <MatchCard key={m.id} match={m} prediction={predMap[m.id] ?? null} />
-          ))}
-        </div>
+        <PaginatedMatches matches={matches} predMap={predMap} />
       ) : (
         <p className="rounded-2xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400 dark:border-gray-700">
           {phase === "group"
