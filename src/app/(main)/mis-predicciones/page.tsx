@@ -70,6 +70,7 @@ export default async function MisPrediccionesPage({
           <Link
             key={f.key}
             href={`/mis-predicciones?filtro=${f.key}`}
+            prefetch={false}
             className={cn(
               "shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition",
               f.key === filter

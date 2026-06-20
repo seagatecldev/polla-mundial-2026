@@ -33,7 +33,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header superior (solo móvil/tablet <lg) */}
         <header className="sticky top-0 z-30 flex items-center justify-between border-b border-gray-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-gray-800 dark:bg-gray-950/90 lg:hidden">
-          <Link href={`/perfil/${user.id}`} className="flex items-center gap-2.5">
+          <Link href={`/perfil/${user.id}`} prefetch={false} className="flex items-center gap-2.5">
             <Avatar name={name} seed={user.id} size="sm" />
             <div className="leading-tight">
               <p className="text-sm font-bold">{name}</p>
@@ -44,6 +44,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
             {isTH && (
               <Link
                 href="/th"
+                prefetch={false}
                 className="rounded-full p-2 text-gray-400 transition hover:bg-gray-100 hover:text-pitch dark:hover:bg-gray-800"
                 aria-label="Panel de seguimiento"
                 title="Seguimiento"
@@ -54,6 +55,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
             {isAdmin && (
               <Link
                 href="/admin"
+                prefetch={false}
                 className="rounded-full p-2 text-gray-400 transition hover:bg-gray-100 hover:text-pitch dark:hover:bg-gray-800"
                 aria-label="Panel de administración"
                 title="Admin"

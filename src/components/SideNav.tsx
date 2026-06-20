@@ -38,6 +38,7 @@ export function SideNav({ userId, name, points, isAdmin, isTH }: Props) {
       {/* Perfil */}
       <Link
         href={`/perfil/${userId}`}
+        prefetch={false}
         className="mx-3 flex items-center gap-2.5 rounded-xl px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-800"
       >
         <Avatar name={name} seed={userId} size="sm" />
@@ -56,6 +57,7 @@ export function SideNav({ userId, name, points, isAdmin, isTH }: Props) {
               <li key={href}>
                 <Link
                   href={href}
+                  prefetch={false}
                   className={cn(
                     "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition",
                     active
@@ -79,6 +81,7 @@ export function SideNav({ userId, name, points, isAdmin, isTH }: Props) {
           {isTH && (
             <Link
               href="/th"
+              prefetch={false}
               className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-pitch dark:text-gray-400 dark:hover:bg-gray-800"
               title="Seguimiento"
             >
@@ -88,6 +91,7 @@ export function SideNav({ userId, name, points, isAdmin, isTH }: Props) {
           {isAdmin && (
             <Link
               href="/admin"
+              prefetch={false}
               className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-pitch dark:text-gray-400 dark:hover:bg-gray-800"
               title="Admin"
             >

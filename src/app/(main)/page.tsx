@@ -64,6 +64,7 @@ export default async function HomePage() {
             <Link
               key={group}
               href={`/partidos?group=${group}`}
+              prefetch={false}
               className="rounded-2xl border border-gray-200 bg-white p-3 transition hover:border-pitch/40 dark:border-gray-800 dark:bg-gray-900"
             >
               <div className="mb-2 flex items-center gap-2">
@@ -95,7 +96,7 @@ function SectionHeader({ title, href, icon }: { title: string; href: string; ico
         {icon && <Trophy size={15} className="text-gold" />}
         {title}
       </h2>
-      <Link href={href} className="flex items-center text-xs font-semibold text-pitch hover:underline">
+      <Link href={href} prefetch={false} className="flex items-center text-xs font-semibold text-pitch hover:underline">
         Ver todo <ChevronRight size={14} />
       </Link>
     </div>

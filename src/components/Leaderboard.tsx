@@ -76,6 +76,7 @@ export function Leaderboard({
           <li key={p.id}>
             <Link
               href={`/perfil/${p.id}`}
+              prefetch={false}
               className={cn(
                 "flex items-center gap-2 px-2.5 py-2.5 transition hover:bg-gray-50 dark:hover:bg-gray-800/50 sm:gap-3 sm:px-3",
                 isMe && "bg-pitch/5 dark:bg-pitch/10"
