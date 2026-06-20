@@ -35,3 +35,7 @@ docs/
 
 # config de sincronización con service_role keys (NUNCA subir)
 scripts/sync.config.json
+
+# documentos internos: solo locales, no al repo publico
+README.md
+PROMPT_POLLA_MUNDIAL.md
