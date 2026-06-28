@@ -82,7 +82,13 @@ export function MatchCard({ match, prediction, canPredict = true }: Props) {
                 {pred.pred_home} – {pred.pred_away}
               </span>
               {finished && pred.points_earned != null && (
-                <PointsBadge points={pred.points_earned} />
+                <PointsBadge
+                  points={pred.points_earned}
+                  exact={
+                    match.home_score === pred.pred_home &&
+                    match.away_score === pred.pred_away
+                  }
+                />
               )}
             </div>
             {editable && (
@@ -147,8 +153,8 @@ function TeamSide({
   );
 }
 
-function PointsBadge({ points }: { points: number }) {
-  if (points === 3) return <Badge tone="gold" className="ml-2">+3 exacto</Badge>;
-  if (points > 0) return <Badge tone="success" className="ml-2">+{points}</Badge>;
-  return <Badge tone="danger" className="ml-2">+0</Badge>;
+function PointsBadge({ points, exact }: { points: number; exact: boolean }) {
+  if (points <= 0) return <Badge tone="danger" className="ml-2">+0</Badge>;
+  if (exact) return <Badge tone="gold" className="ml-2">+{points} exacto</Badge>;
+  return <Badge tone="success" className="ml-2">+{points}</Badge>;
 }
