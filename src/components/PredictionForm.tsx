@@ -35,6 +35,15 @@ export function PredictionForm({
 
   const isKnockout = match.phase !== "group";
 
+  // En eliminatorias, "¿quién clasifica?" solo importa si el marcador es empate
+  // (ahí se decide por penales). Si hay ganador en el marcador, el clasificado
+  // queda implícito y se deriva al guardar.
+  const hNum = parseInt(home, 10);
+  const aNum = parseInt(away, 10);
+  const bothFilled = !Number.isNaN(hNum) && !Number.isNaN(aNum);
+  const isDraw = bothFilled && hNum === aNum;
+  const showQualifier = isKnockout && isDraw;
+
   // El modal se monta vía portal en <body>; `mounted` evita usar document en SSR.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -55,9 +64,19 @@ export function PredictionForm({
       setError("Ingresa un marcador válido para ambos equipos.");
       return;
     }
-    if (isKnockout && !winnerId) {
-      setError("Elige qué equipo crees que clasifica.");
-      return;
+
+    // Clasificado: en empate lo elige el usuario; si no, se deriva del marcador.
+    let winner: number | null = null;
+    if (isKnockout) {
+      if (h === a) {
+        if (!winnerId) {
+          setError("En caso de empate, elige quién clasifica por penales.");
+          return;
+        }
+        winner = winnerId;
+      } else {
+        winner = h > a ? match.home_team_id : match.away_team_id;
+      }
     }
     setSaving(true);
 
@@ -79,7 +98,7 @@ export function PredictionForm({
         match_id: match.id,
         pred_home: h,
         pred_away: a,
-        pred_winner_team_id: isKnockout ? winnerId : null,
+        pred_winner_team_id: winner,
       },
       { onConflict: "user_id,match_id" }
     );
@@ -96,7 +115,7 @@ export function PredictionForm({
     }
 
     // UI optimista: reflejar el pick al instante sin recargar desde el servidor.
-    onSaved?.(h, a, isKnockout ? winnerId : null);
+    onSaved?.(h, a, winner);
     onClose();
   }
 
@@ -139,10 +158,11 @@ export function PredictionForm({
           />
         </div>
 
-        {isKnockout && (
+        {showQualifier && (
           <div className="mt-5">
             <p className="mb-2 text-center text-sm font-semibold text-gray-600 dark:text-gray-300">
-              ¿Quién clasifica? <span className="text-xs font-normal text-gold">(+2 pts)</span>
+              Empate: ¿quién clasifica por penales?{" "}
+              <span className="text-xs font-normal text-gold">(+2 pts)</span>
             </p>
             <div className="flex gap-2">
               <button
